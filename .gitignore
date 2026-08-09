@@ -1,26 +1,5 @@
-# Secrets
 .env
-
-# Python
-__pycache__/
-*.py[cod]
-*.egg-info/
-.venv/
-venv/
-
-# Data / runtime state
+*.bak
 *.db
-*.sqlite3
+_pycache_/
 chroma_store/
-.pytest_cache/
-demo_output/
-
-# OS / editor
-.DS_Store
-.idea/
-.vscode/
-nul
-docs/
-*.bak
-*.bak
-*.db
