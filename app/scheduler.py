@@ -15,6 +15,7 @@ import urllib.parse
 import urllib.request
 from collections import deque
 from datetime import datetime, timedelta, timezone
+from html import escape
 
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.cron import CronTrigger
@@ -80,7 +81,8 @@ def _format_whatsapp_card(user_email: str, products: list, narrative: str) -> st
 
 def _format_telegram_card(user_email: str, products: list, narrative: str) -> str:
     """Format a premium Telegram notification card."""
-    name = user_email.split("@")[0].title()
+    name = escape(user_email.split("@")[0].title())
+    narrative = escape(narrative)
     lines = [
         "🧠 <b>SmartReco</b>",
         "",
@@ -92,9 +94,11 @@ def _format_telegram_card(user_email: str, products: list, narrative: str) -> st
     level_icons = {"beginner": "\U0001F331", "intermediate": "\u26A1", "advanced": "\U0001F525"}
     for i, p in enumerate(products[:5], 1):
         icon = level_icons.get(p.level, "\U0001F4D8")
-        cat = p.category.replace("-", " ").title()
-        lines.append(f"{icon} <b>{p.title}</b>")
-        lines.append(f"     {cat} \u2022 ${p.price:.0f} \u2022 {p.level.title()}")
+        cat = escape(p.category.replace("-", " ").title())
+        title = escape(p.title)
+        level = escape(p.level.title())
+        lines.append(f"{icon} <b>{title}</b>")
+        lines.append(f"     {cat} \u2022 ${p.price:.0f} \u2022 {level}")
         if i < min(len(products), 5):
             lines.append("")
 
@@ -114,8 +118,11 @@ def _send_telegram(bot_token: str, chat_id: str, text: str) -> bool:
     import httpx
     url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
     try:
-        r = httpx.post(url, json={"chat_id": chat_id, "text": text, "parse_mode": "HTML"},
-                       timeout=10, verify=False)
+        r = httpx.post(
+            url,
+            json={"chat_id": chat_id, "text": text, "parse_mode": "HTML"},
+            timeout=10,
+        )
         if r.status_code == 200:
             log.info("Telegram sent to chat %s", chat_id)
             return True
@@ -132,7 +139,14 @@ def deliver(email: str, subject: str, body: str, products: list | None = None, n
     now = datetime.now(timezone.utc).isoformat()
 
     tg_sent = False
-    if "telegram" in channels and settings.telegram_bot_token and settings.telegram_chat_id:
+    telegram_recipient = settings.telegram_recipient_email.strip().lower()
+    if (
+        "telegram" in channels
+        and settings.telegram_bot_token
+        and settings.telegram_chat_id
+        and telegram_recipient
+        and email.strip().lower() == telegram_recipient
+    ):
         card_text = _format_telegram_card(email, products or [], narrative or body)
         tg_sent = _send_telegram(settings.telegram_bot_token, settings.telegram_chat_id, card_text)
 
