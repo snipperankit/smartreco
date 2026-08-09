@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, Form, HTTPException, Response, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.config import settings
 from app.database import get_db
 from app.deps import get_current_user
 from app.models import User
@@ -80,6 +81,7 @@ def _set_cookie(response: Response, token: str) -> None:
         "access_token",
         token,
         httponly=True,
+        secure=settings.cookie_secure,
         samesite="lax",
         max_age=60 * 60 * 24,
     )
