@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy import desc, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -51,16 +51,38 @@ async def latest(
 
 @router.post("/refresh", response_model=RecommendationOut | None)
 async def refresh(
-    db: AsyncSession = Depends(get_db), user: User = Depends(get_current_user)
+    user_id: int | None = Query(default=None),
+    db: AsyncSession = Depends(get_db),
+    user: User = Depends(get_current_user),
 ):
     """Manual/demo trigger — forces a run past the meaningful-signal gate but
     still respects the behavior-signature dedupe. Invalidates cache on success."""
-    rec = await maybe_generate(db, user.id, force=True)
-    rec_cache.invalidate(user.id)  # force next /latest to read fresh
+    target_user = user
+    if user.role == "admin":
+        if user_id is None:
+            raise HTTPException(
+                status.HTTP_400_BAD_REQUEST, "Select a learner to run the agent"
+            )
+        target_user = await db.get(User, user_id)
+        if target_user is None or target_user.role == "admin":
+            raise HTTPException(status.HTTP_404_NOT_FOUND, "Learner not found")
+    elif user_id is not None and user_id != user.id:
+        raise HTTPException(status.HTTP_403_FORBIDDEN, "Cannot run as another user")
+
+    rec = await maybe_generate(db, target_user.id, force=True)
+    rec_cache.invalidate(target_user.id)  # force next /latest to read fresh
     if rec is None:
-        return await latest(db, user)
+        res = await db.execute(
+            select(Recommendation)
+            .where(Recommendation.user_id == target_user.id)
+            .order_by(desc(Recommendation.updated_at))
+            .limit(1)
+        )
+        rec = res.scalar_one_or_none()
+        if rec is None:
+            return None
     out = await _serialize(db, rec)
-    rec_cache.set(user.id, out)
+    rec_cache.set(target_user.id, out)
     return out
 
 
