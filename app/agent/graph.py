@@ -28,6 +28,11 @@ GOOD_RETRIEVAL_SCORE = 0.30
 MAX_REFINES = 1
 
 
+def _retrieval_confidence(score: float) -> float:
+    score = max(0.0, score)
+    return score if score <= 1.0 else score / (1.0 + score)
+
+
 class AgentState(TypedDict, total=False):
     user_id: int
     events: list[dict]          # recent behavioral events (newest first)
@@ -261,7 +266,7 @@ def retrieve(state: AgentState) -> AgentState:
             level_pref=state.get("level_pref"),
         )
 
-    top_score = hits[0]["score"] if hits else 0.0
+    top_score = _retrieval_confidence(float(hits[0]["score"])) if hits else 0.0
     return {**state, "hits": hits, "retrieval_score": top_score}
 
 
