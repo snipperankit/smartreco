@@ -24,7 +24,11 @@ _bm25_df: Counter = Counter()  # document frequency per term
 _bm25_total: int = 0
 _bm25_avgdl: float = 0.0
 
-_ef = embedding_functions.DefaultEmbeddingFunction()  # local sentence-transformers
+_ef = embedding_functions.OpenAIEmbeddingFunction(
+    api_key=settings.mesh_api_key,
+    api_base=settings.mesh_base_url,
+    model_name=settings.mesh_embed_model,
+)
 _client = chromadb.PersistentClient(path=settings.chroma_dir)
 _collection = _client.get_or_create_collection(
     name="products",
@@ -114,8 +118,6 @@ def upsert_product(
     text = _doc_text(title, description, category, tags)
     text_hash = hashlib.sha1(text.encode()).hexdigest()
 
-    # If semantic content hasn't changed (e.g. only price edited), update
-    # metadata without burning an embedding call. Production-grade optimisation.
     need_embed = _content_hashes.get(product_id) != text_hash
 
     meta = {
@@ -133,13 +135,12 @@ def upsert_product(
         )
         _content_hashes[product_id] = text_hash
     else:
-        # Metadata-only update (price, level change) — no Mesh call.
         _collection.update(ids=[str(product_id)], metadatas=[meta])
     _bm25_index_doc(product_id, text)
 
 
 def upsert_many(products: list[dict]) -> None:
-    """Bulk path for the seed script — Chroma embeds locally."""
+    """Bulk path for the seed script."""
     if not products:
         return
     texts = [
@@ -177,19 +178,11 @@ def search(
     sub_topic_boost: list[str] | None = None,
     level_pref: str | None = None,
 ) -> list[dict]:
-    """Three-stage hybrid search: vector retrieval + BM25 keyword + RRF fusion.
-
-    Stage 1a (vector): pull top-24 from Chroma by cosine similarity.
-    Stage 1b (keyword): BM25 scoring over the same catalog (pure Python, zero deps).
-    Stage 2 (fusion): Reciprocal Rank Fusion merges both ranked lists so that
-      documents ranked highly by either signal surface to the top.
-    Stage 3 (rerank): multi-signal scorer adds category, sub-topic, level boosts.
-    """
+    """Three-stage hybrid search: vector retrieval + BM25 keyword + RRF fusion."""
     where = None
     if exclude_ids:
         where = {"product_id": {"$nin": list(exclude_ids)}}
 
-    # Stage 1a: vector retrieval
     candidate_k = max(k * 3, 24)
     res = _collection.query(
         query_texts=[query_text],
@@ -201,7 +194,6 @@ def search(
     dists = res.get("distances", [[]])[0]
     docs = res.get("documents", [[]])[0]
 
-    # Build vector-rank map: product_id → rank position
     vec_rank: dict[int, int] = {}
     vec_meta: dict[int, dict] = {}
     vec_doc: dict[int, str] = {}
@@ -213,11 +205,9 @@ def search(
         vec_doc[pid] = doc
         vec_sim[pid] = 1.0 - float(dist)
 
-    # Stage 1b: BM25 keyword search
     bm25_results = _bm25_search(query_text, k=candidate_k, exclude_ids=exclude_ids)
     bm25_rank: dict[int, int] = {pid: rank for rank, (pid, _) in enumerate(bm25_results)}
 
-    # Stage 2: Reciprocal Rank Fusion (RRF constant k=60)
     rrf_k = 60
     all_pids = set(vec_rank.keys()) | set(bm25_rank.keys())
     rrf_scores: dict[int, float] = {}
@@ -231,13 +221,11 @@ def search(
 
     ranked_pids = sorted(rrf_scores, key=rrf_scores.get, reverse=True)[:candidate_k]
 
-    # Stage 3: multi-signal rerank
     hits: list[dict] = []
     for pid in ranked_pids:
         meta = vec_meta.get(pid)
         doc = vec_doc.get(pid, "")
         if meta is None:
-            # BM25-only hit not in vector results — fetch metadata from Chroma
             try:
                 r = _collection.get(ids=[str(pid)], include=["metadatas", "documents"])
                 meta = r["metadatas"][0] if r["metadatas"] else {}
@@ -245,21 +233,16 @@ def search(
             except Exception:
                 continue
 
-        base_score = vec_sim.get(pid, 0.3)  # default for BM25-only hits
-
-        # Category boost — hot category match
+        base_score = vec_sim.get(pid, 0.3)
         cat_boost = 0.05 if category_boost and meta.get("category") in category_boost else 0.0
 
-        # Sub-topic boost — fine-grained tag match (much sharper than category)
         topic_boost = 0.0
         if sub_topic_boost and doc:
             doc_lower = doc.lower()
             matches = sum(1 for topic in sub_topic_boost if topic.lower() in doc_lower)
-            topic_boost = min(0.10, 0.03 * matches)  # cap at 0.10
+            topic_boost = min(0.10, 0.03 * matches)
 
-        # Level match — advanced learner + advanced course pair
         level_boost = 0.03 if level_pref and meta.get("level") == level_pref else 0.0
-
         final_score = base_score + cat_boost + topic_boost + level_boost
 
         hits.append(
