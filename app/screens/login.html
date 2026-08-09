@@ -15,11 +15,11 @@
       <div class="space-y-4">
         <div>
           <label class="block text-sm font-bold text-udemy-text mb-1">Email</label>
-          <input id="email" type="email" class="w-full border border-udemy-border px-4 py-3 text-sm focus:outline-none focus:border-udemy-text transition" value="admin@smartreco.dev" />
+          <input id="email" type="email" class="w-full border border-udemy-border px-4 py-3 text-sm focus:outline-none focus:border-udemy-text transition" placeholder="you@example.com" />
         </div>
         <div>
           <label class="block text-sm font-bold text-udemy-text mb-1">Password</label>
-          <input id="password" type="password" class="w-full border border-udemy-border px-4 py-3 text-sm focus:outline-none focus:border-udemy-text transition" value="admin1234" />
+          <input id="password" type="password" class="w-full border border-udemy-border px-4 py-3 text-sm focus:outline-none focus:border-udemy-text transition" placeholder="••••••••" />
         </div>
 
         <button onclick="signIn()" class="w-full py-3 bg-udemy-purple text-white font-bold text-base hover:bg-udemy-hover transition">
@@ -31,47 +31,6 @@
       </div>
     </div>
 
-    <!-- Demo accounts -->
-    <div class="mt-6 bg-white border border-udemy-border rounded-lg p-5 shadow-sm">
-      <h3 class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">Demo accounts</h3>
-      <div class="space-y-2">
-        <button onclick="fillDemo('admin@smartreco.dev','admin1234')" class="w-full text-left px-3 py-2 rounded hover:bg-udemy-light transition flex items-center justify-between group">
-          <div>
-            <span class="text-sm font-bold text-udemy-text">Admin</span>
-            <span class="text-xs text-gray-400 ml-2">admin@smartreco.dev</span>
-          </div>
-          <span class="text-xs text-udemy-purple opacity-0 group-hover:opacity-100 transition">Use →</span>
-        </button>
-        <button onclick="fillDemo('maya@demo.dev','demo1234')" class="w-full text-left px-3 py-2 rounded hover:bg-udemy-light transition flex items-center justify-between group">
-          <div>
-            <span class="text-sm font-bold text-udemy-text">Maya</span>
-            <span class="text-xs text-gray-400 ml-2">Agent builder · agentic-ai</span>
-          </div>
-          <span class="text-xs text-udemy-purple opacity-0 group-hover:opacity-100 transition">Use →</span>
-        </button>
-        <button onclick="fillDemo('raj@demo.dev','demo1234')" class="w-full text-left px-3 py-2 rounded hover:bg-udemy-light transition flex items-center justify-between group">
-          <div>
-            <span class="text-sm font-bold text-udemy-text">Raj</span>
-            <span class="text-xs text-gray-400 ml-2">ML engineer · machine-learning</span>
-          </div>
-          <span class="text-xs text-udemy-purple opacity-0 group-hover:opacity-100 transition">Use →</span>
-        </button>
-        <button onclick="fillDemo('sofia@demo.dev','demo1234')" class="w-full text-left px-3 py-2 rounded hover:bg-udemy-light transition flex items-center justify-between group">
-          <div>
-            <span class="text-sm font-bold text-udemy-text">Sofia</span>
-            <span class="text-xs text-gray-400 ml-2">Full-stack · python, web-dev</span>
-          </div>
-          <span class="text-xs text-udemy-purple opacity-0 group-hover:opacity-100 transition">Use →</span>
-        </button>
-        <button onclick="fillDemo('kai@demo.dev','demo1234')" class="w-full text-left px-3 py-2 rounded hover:bg-udemy-light transition flex items-center justify-between group">
-          <div>
-            <span class="text-sm font-bold text-udemy-text">Kai</span>
-            <span class="text-xs text-gray-400 ml-2">Explorer · LLM, career, cloud</span>
-          </div>
-          <span class="text-xs text-udemy-purple opacity-0 group-hover:opacity-100 transition">Use →</span>
-        </button>
-      </div>
-    </div>
   </div>
 </div>
 {% endblock %}
@@ -81,10 +40,6 @@
   function showError(msg) {
     const e = document.getElementById("error");
     e.textContent = msg; e.classList.remove("hidden");
-  }
-  function fillDemo(email, pw) {
-    document.getElementById("email").value = email;
-    document.getElementById("password").value = pw;
   }
   async function signIn() {
     const body = new URLSearchParams({
