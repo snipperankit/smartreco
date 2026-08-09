@@ -50,7 +50,11 @@ async def _auto_seed() -> None:
             log.info("Empty catalog detected — running auto-seed…")
             from seed import main as seed_catalog
             from seed_demo import main as seed_personas
-            await seed_catalog()
+            try:
+                await seed_catalog()
+            except Exception as e:
+                log.warning("Auto-seed catalog failed (will retry next restart): %s", e)
+                return
             await seed_personas()
             log.info("Auto-seed complete.")
 
