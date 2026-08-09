@@ -165,6 +165,9 @@
 
 {% block scripts %}
 <script>
+  const escapeHtml = value => String(value ?? '').replace(/[&<>'"]/g, char => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;'
+  })[char]);
   const isAuthed = {{ 'true' if user else 'false' }};
   const isAdmin = {{ 'true' if user and user.role == "admin" else 'false' }};
   const isLearner = isAuthed && !isAdmin;
@@ -260,18 +263,18 @@
         card.className = 'pointer-events-auto w-80 bg-white border border-udemy-border rounded-lg shadow-2xl overflow-hidden translate-x-full opacity-0 transition-all duration-300 ease-out';
         card.innerHTML = `
           <div class="flex items-center gap-3 p-3">
-            <img src="${p.thumbnail_url || 'https://images.unsplash.com/photo-1518770660439-4636190af475?w=80&h=80&fit=crop&q=60&auto=format'}"
-                 alt="${p.title}" class="w-12 h-12 rounded object-cover shrink-0" />
+              <img src="${escapeHtml(p.thumbnail_url || 'https://images.unsplash.com/photo-1518770660439-4636190af475?w=80&h=80&fit=crop&q=60&auto=format')}"
+                alt="${escapeHtml(p.title)}" class="w-12 h-12 rounded object-cover shrink-0" />
             <div class="flex-1 min-w-0">
               <div class="text-[10px] font-bold text-udemy-purple uppercase tracking-wider">New pick for you</div>
-              <p class="text-sm font-semibold text-udemy-text truncate mt-0.5">${p.title}</p>
-              <span class="text-[10px] text-gray-400">${p.category.replace(/-/g, ' ')} · $${p.price.toFixed(0)}</span>
+              <p class="text-sm font-semibold text-udemy-text truncate mt-0.5">${escapeHtml(p.title)}</p>
+              <span class="text-[10px] text-gray-400">${escapeHtml(p.category.replace(/-/g, ' '))} · $${Number(p.price).toFixed(0)}</span>
             </div>
             <button onclick="dismissNotif(this.closest('[data-notif]'))" class="shrink-0 text-gray-400 hover:text-gray-600 p-1 self-start">
               <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12"/></svg>
             </button>
           </div>
-          <a href="/product/${p.id}" class="block px-3 py-1.5 text-[11px] font-medium text-udemy-purple hover:bg-udemy-light transition text-center border-t border-udemy-border">
+          <a href="/product/${Number(p.id)}" class="block px-3 py-1.5 text-[11px] font-medium text-udemy-purple hover:bg-udemy-light transition text-center border-t border-udemy-border">
             View course →
           </a>`;
         card.setAttribute('data-notif', '');
@@ -299,15 +302,15 @@
     document.getElementById("rec-narrative").textContent = data.narrative_copy || "";
 
     document.getElementById("rec-cards").innerHTML = data.products.map(p => `
-      <a href="/product/${p.id}" data-track="recommendation_click" data-product-id="${p.id}" data-category="${p.category}"
+      <a href="/product/${Number(p.id)}" data-track="recommendation_click" data-product-id="${Number(p.id)}" data-category="${escapeHtml(p.category)}"
          class="flex flex-col rounded-lg border border-udemy-border hover:shadow-lg hover:-translate-y-0.5 transition overflow-hidden group bg-white">
-        <img src="${p.thumbnail_url || 'https://images.unsplash.com/photo-1518770660439-4636190af475?w=480&h=270&fit=crop&q=60&auto=format'}"
-             alt="${p.title}" class="w-full h-28 object-cover" />
+           <img src="${escapeHtml(p.thumbnail_url || 'https://images.unsplash.com/photo-1518770660439-4636190af475?w=480&h=270&fit=crop&q=60&auto=format')}"
+             alt="${escapeHtml(p.title)}" class="w-full h-28 object-cover" />
         <div class="p-3 flex flex-col gap-1">
-          <div class="font-bold text-sm text-udemy-text leading-tight line-clamp-2 group-hover:text-udemy-purple transition">${p.title}</div>
+          <div class="font-bold text-sm text-udemy-text leading-tight line-clamp-2 group-hover:text-udemy-purple transition">${escapeHtml(p.title)}</div>
           <div class="flex items-center justify-between mt-1">
-            <span class="text-sm font-bold text-udemy-text">$${p.price.toFixed(0)}</span>
-            <span class="text-[10px] text-gray-400 uppercase tracking-wide">${p.category.replace(/-/g, ' ')}</span>
+            <span class="text-sm font-bold text-udemy-text">$${Number(p.price).toFixed(0)}</span>
+            <span class="text-[10px] text-gray-400 uppercase tracking-wide">${escapeHtml(p.category.replace(/-/g, ' '))}</span>
           </div>
         </div>
       </a>`).join("");
@@ -319,8 +322,8 @@
         <details>
           <summary class="text-xs text-udemy-purple cursor-pointer hover:underline font-medium">How the agent decided →</summary>
           <div class="mt-2 text-xs text-gray-500 flex flex-wrap gap-x-6 gap-y-1 bg-udemy-light rounded-lg p-3">
-            ${r.hot_categories?.length ? `<div><span class="font-bold text-gray-600">Interests detected:</span> ${r.hot_categories.join(", ")}</div>` : ""}
-            ${r.query ? `<div><span class="font-bold text-gray-600">Search query used:</span> ${r.query}</div>` : ""}
+            ${r.hot_categories?.length ? `<div><span class="font-bold text-gray-600">Interests detected:</span> ${r.hot_categories.map(escapeHtml).join(", ")}</div>` : ""}
+            ${r.query ? `<div><span class="font-bold text-gray-600">Search query used:</span> ${escapeHtml(r.query)}</div>` : ""}
             ${r.retrieval_score ? `<div><span class="font-bold text-gray-600">Match score:</span> ${(r.retrieval_score * 100).toFixed(0)}%</div>` : ""}
           </div>
         </details>`;
@@ -359,7 +362,7 @@
     actFeed.innerHTML = feedItems.map(f =>
       `<div class="flex items-start gap-2 py-1.5 border-b border-gray-100 last:border-0">
         <span class="shrink-0 mt-0.5">${ICONS[f.type] || "\u2022"}</span>
-        <div><span class="text-gray-400 tabular-nums">${f.time}</span> ${f.detail}</div>
+        <div><span class="text-gray-400 tabular-nums">${escapeHtml(f.time)}</span> ${f.detail}</div>
       </div>`
     ).join("");
   }
@@ -374,7 +377,7 @@
 
   function describeEvent(e) {
     const p = e.payload || {};
-    if (e.event_type === "search") return ["search", `Searched "<b>${p.query || ""}</b>"`];
+    if (e.event_type === "search") return ["search", `Searched "<b>${escapeHtml(p.query || "")}</b>"`];
     if (p.product_id && (e.event_type === "view" || e.event_type === "product_view"))
       return ["view", `Viewed course #${p.product_id}${p.time_spent ? ` \u00b7 ${p.time_spent}s` : ""}`];
     if (e.event_type === "click" || e.event_type === "recommendation_click")
