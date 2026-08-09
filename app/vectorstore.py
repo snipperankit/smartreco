@@ -13,7 +13,7 @@ import re
 from collections import Counter
 
 import chromadb
-from chromadb.utils import embedding_functions
+from chromadb.api.types import EmbeddingFunction, Documents, Embeddings
 
 from app.config import settings
 
@@ -24,11 +24,24 @@ _bm25_df: Counter = Counter()  # document frequency per term
 _bm25_total: int = 0
 _bm25_avgdl: float = 0.0
 
-_ef = embedding_functions.OpenAIEmbeddingFunction(
-    api_key=settings.mesh_api_key,
-    api_base=settings.mesh_base_url,
-    model_name=settings.mesh_embed_model,
-)
+
+class MeshEmbeddingFunction(EmbeddingFunction):
+    """Calls Mesh API (OpenAI-compatible) for embeddings."""
+
+    def __call__(self, input: Documents) -> Embeddings:
+        import openai
+        client = openai.OpenAI(
+            api_key=settings.mesh_api_key,
+            base_url=settings.mesh_base_url,
+        )
+        resp = client.embeddings.create(
+            input=input,
+            model=settings.mesh_embed_model,
+        )
+        return [item.embedding for item in resp.data]
+
+
+_ef = MeshEmbeddingFunction()
 _client = chromadb.PersistentClient(path=settings.chroma_dir)
 _collection = _client.get_or_create_collection(
     name="products",
