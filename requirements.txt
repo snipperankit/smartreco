@@ -15,6 +15,6 @@ chromadb==0.5.23
 posthog<6
 langgraph==0.2.60
 langchain-core==0.3.28
-apscheduler==3.11.0
+apscheduler==3.11.3
 langsmith==0.2.10
 httpx==0.28.1
