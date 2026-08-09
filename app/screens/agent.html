@@ -295,6 +295,9 @@
 
 {% block scripts %}
 <script>
+const escapeHtml = value => String(value ?? '').replace(/[&<>'"]/g, char => ({
+  '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;'
+})[char]);
 async function runAgent() {
   const btn = document.getElementById('run-btn');
   const userSelect = document.getElementById('agent-user');
@@ -376,7 +379,7 @@ async function runAgent() {
           <span class="text-sm shrink-0">${m.icon}</span>
           <div class="min-w-0">
             <div class="text-[10px] text-gray-400 uppercase font-semibold">${m.label}</div>
-            <div class="text-sm font-medium text-gray-800 truncate" title="${m.value}">${m.value}</div>
+            <div class="text-sm font-medium text-gray-800 truncate" title="${escapeHtml(m.value)}">${escapeHtml(m.value)}</div>
           </div>
         </div>`;
     });
@@ -391,13 +394,13 @@ async function runAgent() {
           <div class="flex items-start gap-3 py-2.5 ${i > 0 ? 'border-t border-gray-100' : ''}">
             <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-udemy-purple/10 to-udemy-purple/5 flex items-center justify-center text-sm shrink-0 font-bold text-udemy-purple">${i+1}</div>
             <div class="min-w-0">
-              <div class="text-sm font-semibold text-gray-800 leading-tight">${p.title}</div>
+              <div class="text-sm font-semibold text-gray-800 leading-tight">${escapeHtml(p.title)}</div>
               <div class="flex items-center gap-2 mt-1 text-[11px] text-gray-500">
-                <span>${icon} ${p.level || 'all'}</span>
+                <span>${icon} ${escapeHtml(p.level || 'all')}</span>
                 <span class="text-gray-300">·</span>
-                <span class="px-1.5 py-0.5 bg-gray-100 rounded text-gray-600">${p.category}</span>
+                <span class="px-1.5 py-0.5 bg-gray-100 rounded text-gray-600">${escapeHtml(p.category)}</span>
                 <span class="text-gray-300">·</span>
-                <span class="font-semibold text-green-700">$${p.price}</span>
+                <span class="font-semibold text-green-700">$${escapeHtml(p.price)}</span>
               </div>
             </div>
           </div>`;
@@ -413,7 +416,7 @@ async function runAgent() {
         <div class="relative">
           <div class="absolute -left-1 top-0 bottom-0 w-1 rounded-full bg-gradient-to-b from-udemy-purple to-purple-300"></div>
           <blockquote class="pl-5 text-sm text-gray-700 leading-relaxed italic">
-            "${data.narrative_copy}"
+            "${escapeHtml(data.narrative_copy)}"
           </blockquote>
         </div>
         <div class="mt-4 flex items-center gap-2 text-[10px] text-gray-400">
