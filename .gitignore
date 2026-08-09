@@ -21,3 +21,4 @@ demo_output/
 .vscode/
 nul
 docs/
+*.bak
