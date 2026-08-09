@@ -14,6 +14,7 @@ Covers:
   Health       – /health endpoint
 """
 import json
+import os
 import time
 import uuid
 
@@ -22,6 +23,8 @@ import pytest
 
 BASE = "http://localhost:8000"
 TIMEOUT = httpx.Timeout(30.0)
+ADMIN_EMAIL = os.getenv("TEST_ADMIN_EMAIL")
+ADMIN_PASSWORD = os.getenv("TEST_ADMIN_PASSWORD")
 
 
 # ── helpers ────────────────────────────────────────────────────────────────
@@ -44,9 +47,11 @@ def _login(client: httpx.Client, email: str, password: str) -> httpx.Response:
 
 
 def _admin_client() -> httpx.Client:
-    """Return a client logged in as the seeded admin."""
+    """Return a client logged in with externally supplied admin credentials."""
+    if not ADMIN_EMAIL or not ADMIN_PASSWORD:
+        pytest.skip("Set TEST_ADMIN_EMAIL and TEST_ADMIN_PASSWORD")
     c = httpx.Client(timeout=TIMEOUT)
-    r = _login(c, "admin@smartreco.dev", "admin1234")
+    r = _login(c, ADMIN_EMAIL, ADMIN_PASSWORD)
     assert r.status_code == 200, f"Admin login failed: {r.text}"
     return c
 
@@ -100,16 +105,18 @@ class TestAuth:
 
     # AUTH-02: login returns JWT
     def test_login_success(self):
-        c = httpx.Client(timeout=TIMEOUT)
-        r = _login(c, "admin@smartreco.dev", "admin1234")
+        c = _admin_client()
+        r = c.get(f"{BASE}/api/auth/me")
         assert r.status_code == 200
         body = r.json()
-        assert body["access_token"]
+        assert body["email"] == ADMIN_EMAIL
         assert body["role"] == "admin"
 
     def test_login_wrong_password(self):
+        if not ADMIN_EMAIL:
+            pytest.skip("Set TEST_ADMIN_EMAIL")
         c = httpx.Client(timeout=TIMEOUT)
-        r = _login(c, "admin@smartreco.dev", "wrong")
+        r = _login(c, ADMIN_EMAIL, "definitely-not-the-password")
         assert r.status_code == 401
 
     def test_login_nonexistent_user(self):
@@ -119,14 +126,12 @@ class TestAuth:
 
     # AUTH-02: login sets httponly cookie
     def test_login_sets_cookie(self):
-        c = httpx.Client(timeout=TIMEOUT)
-        _login(c, "admin@smartreco.dev", "admin1234")
+        c = _admin_client()
         assert "access_token" in c.cookies
 
     # AUTH-04: logout clears session
     def test_logout(self):
-        c = httpx.Client(timeout=TIMEOUT)
-        _login(c, "admin@smartreco.dev", "admin1234")
+        c = _admin_client()
         r = c.post(f"{BASE}/api/auth/logout")
         assert r.status_code == 200
         assert r.json()["ok"] is True
@@ -141,7 +146,7 @@ class TestAuth:
         r = c.get(f"{BASE}/api/auth/me")
         assert r.status_code == 200
         body = r.json()
-        assert body["email"] == "admin@smartreco.dev"
+        assert body["email"] == ADMIN_EMAIL
         assert body["role"] == "admin"
         assert "id" in body
 
