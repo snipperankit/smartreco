@@ -236,6 +236,20 @@
       Live Agent Run
     </h3>
     <p class="text-sm text-gray-600 mb-5">Trigger the recommendation agent now and see the full reasoning trace.</p>
+    {% if user.role == "admin" %}
+    <div class="mb-5 max-w-md">
+      <label for="agent-user" class="block text-sm font-bold text-udemy-text mb-1">Learner</label>
+      <select id="agent-user" class="w-full border border-udemy-border bg-white px-4 py-3 text-sm focus:outline-none focus:border-udemy-text transition">
+        <option value="">Select a learner</option>
+        {% for learner in learners %}
+        <option value="{{ learner.id }}">{{ learner.email }}</option>
+        {% endfor %}
+      </select>
+      {% if not learners %}
+      <p class="mt-2 text-xs text-amber-700">No learner accounts are available yet.</p>
+      {% endif %}
+    </div>
+    {% endif %}
     <button onclick="runAgent()" id="run-btn" class="px-6 py-3 bg-udemy-purple text-white font-bold hover:bg-udemy-hover transition rounded-lg shadow-lg shadow-purple-500/20 flex items-center gap-2">
       <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.347a1.125 1.125 0 010 1.972l-11.54 6.347a1.125 1.125 0 01-1.667-.986V5.653z"/></svg>
       Run Agent Pipeline
@@ -283,6 +297,7 @@
 <script>
 async function runAgent() {
   const btn = document.getElementById('run-btn');
+  const userSelect = document.getElementById('agent-user');
   const output = document.getElementById('agent-output');
   const statusIcon = document.getElementById('status-icon');
   const statusText = document.getElementById('status-text');
@@ -293,6 +308,11 @@ async function runAgent() {
   const stateRecs = document.getElementById('state-recs');
   const stateNarrative = document.getElementById('state-narrative');
   const stratBadge = document.getElementById('strategy-badge');
+
+  if (userSelect && !userSelect.value) {
+    userSelect.focus();
+    return;
+  }
 
   btn.disabled = true;
   btn.innerHTML = '<svg class="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Running…';
@@ -305,8 +325,13 @@ async function runAgent() {
 
   try {
     const t0 = performance.now();
-    const r = await fetch('/api/recommendations/refresh', { method: 'POST' });
+    const endpoint = userSelect
+      ? `/api/recommendations/refresh?user_id=${encodeURIComponent(userSelect.value)}`
+      : '/api/recommendations/refresh';
+    const r = await fetch(endpoint, { method: 'POST' });
     const data = await r.json();
+    if (!r.ok) throw new Error(data.detail || 'Agent pipeline request failed');
+    if (!data) throw new Error('No recommendation was produced for this learner yet');
     const ms = Math.round(performance.now() - t0);
     const secs = (ms / 1000).toFixed(1);
 
