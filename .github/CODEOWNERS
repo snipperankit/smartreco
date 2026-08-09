@@ -1,0 +1,8 @@
+* @snipperankit
+
+/.github/ @snipperankit
+/app/config.py @snipperankit
+/app/security.py @snipperankit
+/app/routers/auth.py @snipperankit
+/render.yaml @snipperankit
+/requirements.txt @snipperankit
