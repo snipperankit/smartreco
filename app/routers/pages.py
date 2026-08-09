@@ -161,8 +161,16 @@ async def admin_page(
 @router.get("/agent", response_class=HTMLResponse)
 async def agent_page(
     request: Request,
+    db: AsyncSession = Depends(get_db),
     user: User | None = Depends(get_current_user_optional),
 ):
+    learners = []
+    if user and user.role == "admin":
+        learners = (
+            await db.execute(
+                select(User).where(User.role != "admin").order_by(User.email)
+            )
+        ).scalars().all()
     return templates.TemplateResponse(
-        request, "agent.html", {"user": user}
+        request, "agent.html", {"user": user, "learners": learners}
     )
