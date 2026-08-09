@@ -41,13 +41,27 @@ async def _bootstrap_admin() -> None:
             log.info("Bootstrapped admin: %s", settings.admin_email)
 
 
+async def _auto_seed() -> None:
+    """Seed 50 courses + demo personas if DB is empty (first deploy)."""
+    async with SessionLocal() as db:
+        from app.models import Product
+        res = await db.execute(select(Product).limit(1))
+        if res.scalar_one_or_none() is None:
+            log.info("Empty catalog detected — running auto-seed…")
+            from seed import main as seed_catalog
+            from seed_demo import main as seed_personas
+            await seed_catalog()
+            await seed_personas()
+            log.info("Auto-seed complete.")
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     _configure_observability()
     await init_db()
     await _bootstrap_admin()
+    await _auto_seed()
     start_scheduler()
-    # Start high-throughput event buffer (scale engineering).
     from app.event_buffer import event_buffer
     event_buffer.start()
     yield
@@ -69,13 +83,4 @@ app.include_router(pages.router)
 
 @app.get("/health")
 async def health():
-    from app import vectorstore
-    from app.event_buffer import event_buffer
-    from app.rec_cache import rec_cache
-
-    return {
-        "status": "ok",
-        "vectors": vectorstore.count(),
-        "event_buffer": event_buffer.stats,
-        "rec_cache": rec_cache.stats,
-    }
+    return {"status": "ok"}
