@@ -10,7 +10,6 @@ import hashlib
 import logging
 from functools import lru_cache
 
-import httpx
 from openai import OpenAI, RateLimitError
 
 from app.config import settings
@@ -23,7 +22,6 @@ def _client() -> OpenAI:
     return OpenAI(
         base_url=settings.mesh_base_url,
         api_key=settings.mesh_api_key,
-        http_client=httpx.Client(verify=False),
         max_retries=0,  # we handle model fallback ourselves
     )
 
