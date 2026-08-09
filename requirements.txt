@@ -11,7 +11,6 @@ email-validator==2.3.0
 passlib==1.7.4
 python-jose[cryptography]==3.3.0
 openai==1.59.6
-chromadb==0.5.23
 langgraph==0.2.60
 langchain-core==0.3.28
 apscheduler==3.11.0
