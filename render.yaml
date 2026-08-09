@@ -24,4 +24,4 @@ services:
       - key: ENABLE_SCHEDULER
         value: "true"
       - key: DELIVERY_CHANNELS
-        value: mailbox
+        value: mailbox,telegram
