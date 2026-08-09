@@ -162,6 +162,9 @@
 
 {% block scripts %}
 <script>
+  const escapeHtml = value => String(value ?? '').replace(/[&<>'"]/g, char => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;'
+  })[char]);
   // --- Tabs ---
   function showTab(name) {
     ["overview", "activity", "catalog", "mailbox"].forEach(t => {
@@ -205,7 +208,7 @@
         .map(([type, n]) => {
           const colors = { view: "bg-udemy-purple", search: "bg-amber-500", click: "bg-green-500" };
           return `<div class="flex items-center gap-3">
-            <div class="w-16 text-xs text-gray-500 text-right font-medium">${type}</div>
+            <div class="w-16 text-xs text-gray-500 text-right font-medium">${escapeHtml(type)}</div>
             <div class="flex-1 bg-gray-100 rounded-full h-5 overflow-hidden">
               <div class="${colors[type] || 'bg-gray-400'} h-full rounded-full transition-all" style="width:${Math.round(n/maxE*100)}%"></div>
             </div>
@@ -219,7 +222,7 @@
         const maxC = d.top_categories[0].events;
         cb.innerHTML = d.top_categories.map(c =>
           `<div class="flex items-center gap-3">
-            <div class="w-28 text-xs text-gray-500 text-right truncate font-medium">${c.category}</div>
+            <div class="w-28 text-xs text-gray-500 text-right truncate font-medium">${escapeHtml(c.category)}</div>
             <div class="flex-1 bg-gray-100 rounded-full h-5 overflow-hidden">
               <div class="bg-udemy-purple h-full rounded-full" style="width:${Math.round(c.events/maxC*100)}%"></div>
             </div>
@@ -243,13 +246,13 @@
         return;
       }
       el.innerHTML = profiles.map(p => {
-        const cats = p.hot_categories.map(c => `<span class="inline-block text-xs bg-purple-50 text-udemy-purple px-2 py-0.5 rounded-full font-medium">${c}</span>`).join(" ");
+        const cats = p.hot_categories.map(c => `<span class="inline-block text-xs bg-purple-50 text-udemy-purple px-2 py-0.5 rounded-full font-medium">${escapeHtml(c)}</span>`).join(" ");
         const searches = p.recent_searches.length
-          ? `<span class="text-gray-400">Searched:</span> ${p.recent_searches.slice(0,3).map(s => `"${s}"`).join(", ")}`
+          ? `<span class="text-gray-400">Searched:</span> ${p.recent_searches.slice(0,3).map(s => `"${escapeHtml(s)}"`).join(", ")}`
           : "";
         return `<div class="border border-udemy-border rounded-lg p-3 hover:bg-udemy-light transition">
           <div class="flex items-center justify-between mb-1">
-            <span class="font-bold text-sm text-udemy-text">${p.email}</span>
+            <span class="font-bold text-sm text-udemy-text">${escapeHtml(p.email)}</span>
             <span class="text-xs font-medium ${p.has_recommendation ? 'text-green-600' : 'text-gray-400'}">${p.has_recommendation ? '✓ Has recs' : 'No recs yet'}</span>
           </div>
           <div class="flex items-center gap-2 mb-1">${cats || '<span class="text-xs text-gray-400">no category signal</span>'}</div>
@@ -280,8 +283,8 @@
         return `<div class="flex gap-3 py-2.5 items-baseline">
           <span class="text-xs font-mono text-gray-400 w-12 shrink-0">${t}</span>
           <span class="w-2 h-2 rounded-full shrink-0 ${dot}"></span>
-          <div class="flex-1 text-sm text-udemy-text min-w-0 truncate"><span class="text-gray-500 capitalize">${e.event_type}</span> ${target}</div>
-          <span class="text-xs text-gray-400 shrink-0">${e.user}</span>
+          <div class="flex-1 text-sm text-udemy-text min-w-0 truncate"><span class="text-gray-500 capitalize">${escapeHtml(e.event_type)}</span> ${escapeHtml(target)}</div>
+          <span class="text-xs text-gray-400 shrink-0">${escapeHtml(e.user)}</span>
         </div>`;
       }).join("");
     } catch (_) {}
@@ -340,7 +343,7 @@
       const channelBadge = m.channel?.includes("telegram")
         ? '<span class="bg-blue-100 text-blue-700 text-xs font-bold px-2 py-0.5 rounded-full">✓ Sent via Telegram</span>'
         : '<span class="bg-gray-100 text-gray-500 text-xs font-bold px-2 py-0.5 rounded-full">Mailbox only</span>';
-      const tgCard = m.telegram_card ? m.telegram_card
+      const tgCard = m.telegram_card ? escapeHtml(m.telegram_card)
         .replace(/\*(.*?)\*/g, '<strong>$1</strong>')
         .replace(/_(.*?)_/g, '<em>$1</em>')
         .replace(/\n/g, '<br>') : '';
@@ -356,12 +359,12 @@
           <div class="flex items-start justify-between mb-2">
             <div>
               <span class="text-xs font-bold text-udemy-purple">To:</span>
-              <span class="text-sm font-bold text-udemy-text ml-1">${m.to}</span>
+              <span class="text-sm font-bold text-udemy-text ml-1">${escapeHtml(m.to)}</span>
             </div>
             <span class="text-xs text-gray-400">${new Date(m.delivered_at).toLocaleString()}</span>
           </div>
-          <div class="text-sm font-bold text-udemy-text mb-2">${m.subject}</div>
-          <div class="text-sm text-gray-600 whitespace-pre-line bg-gray-50 rounded p-3">${m.body}</div>
+          <div class="text-sm font-bold text-udemy-text mb-2">${escapeHtml(m.subject)}</div>
+          <div class="text-sm text-gray-600 whitespace-pre-line bg-gray-50 rounded p-3">${escapeHtml(m.body)}</div>
         </div>
         <!-- Telegram card preview -->
         <div class="rounded-lg overflow-hidden" style="background: #e8ecf0;">
