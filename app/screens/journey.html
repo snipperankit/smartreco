@@ -1,0 +1,110 @@
+{% extends "base.html" %}
+{% block title %}My Journey — SmartReco{% endblock %}
+{% block sr_context %}{"event":"journey_view"}{% endblock %}
+
+{% block content %}
+<div class="bg-udemy-dark text-white">
+  <div class="max-w-[1340px] mx-auto px-4 py-8">
+    <div class="text-xs uppercase tracking-widest text-purple-300 font-bold mb-2">Your journey</div>
+    <h1 class="text-2xl md:text-3xl font-extrabold">Here's what the agent is reading.</h1>
+    <p class="text-gray-400 text-sm mt-2 max-w-xl">Your behaviour, the interests we've inferred, and how our recommendation has shifted as you moved.</p>
+  </div>
+</div>
+
+<div class="max-w-[1340px] mx-auto px-4 py-8">
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
+    <!-- Interest profile -->
+    <div>
+      <div class="bg-white border border-udemy-border rounded-lg p-6">
+        <h2 class="text-lg font-extrabold text-udemy-text mb-5">Interest profile</h2>
+        {% if interest_bars %}
+        <div class="space-y-4">
+          {% for b in interest_bars %}
+          <div>
+            <div class="flex justify-between text-sm mb-1">
+              <span class="font-medium text-udemy-text">{{ b.category | replace('-',' ') }}</span>
+              <span class="text-gray-400">{{ b.pct }}%</span>
+            </div>
+            <div class="h-2 bg-gray-100 rounded-full overflow-hidden">
+              <div class="h-full rounded-full {{ 'bg-udemy-purple' if loop.index == 1 else 'bg-purple-300' }}" style="width: {{ b.pct }}%"></div>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+        {% else %}
+        <p class="text-sm text-gray-400">No signals yet — browse, search and click a few courses and this profile will come alive.</p>
+        {% endif %}
+
+        <div class="flex gap-10 mt-8 pt-6 border-t border-udemy-border">
+          <div>
+            <div class="text-4xl font-extrabold text-udemy-text">{{ total_events }}</div>
+            <div class="text-xs text-gray-500 mt-1">signals captured</div>
+          </div>
+          <div>
+            <div class="text-4xl font-extrabold text-udemy-purple">{{ rec_count }}</div>
+            <div class="text-xs text-gray-500 mt-1">times we recommended</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="bg-purple-50 border border-purple-100 rounded-lg p-5 mt-6 text-sm text-gray-600">
+        <span class="text-udemy-purple font-bold">●</span>
+        Every click, search and dwell becomes signal. The agent reads it, retrieves from the catalogue, and rewrites your recommendation as you move.
+        <a href="/agent" class="text-udemy-purple font-bold hover:underline ml-1">Watch it reason →</a>
+      </div>
+    </div>
+
+    <!-- Activity timeline -->
+    <div class="bg-white border border-udemy-border rounded-lg p-6">
+      <h2 class="text-lg font-extrabold text-udemy-text mb-4">Activity timeline</h2>
+      {% if events %}
+      <div class="divide-y divide-gray-100">
+        {% for e in events %}
+        {% set p = e.payload or {} %}
+        {% set course = product_titles.get(p.get('product_id')) %}
+        <div class="flex gap-3 py-2.5 items-baseline">
+          <span class="text-xs font-mono text-gray-400 w-14 shrink-0 text-right">{{ e.created_at.strftime('%H:%M') if e.created_at else '—' }}</span>
+          <span class="w-2 h-2 rounded-full shrink-0 translate-y-[-1px]
+            {{ 'bg-amber-500' if e.event_type == 'search' else ('bg-udemy-purple' if e.event_type in ('view', 'product_view', 'page_view') else ('bg-blue-500' if e.event_type == 'click' else 'bg-green-500')) }}"></span>
+          <div class="text-sm text-udemy-text min-w-0">
+            {% if e.event_type == 'search' %}
+              <span class="text-gray-500">Searched for</span> <span class="font-medium">"{{ p.get('query', '') }}"</span>
+            {% elif e.event_type == 'click' %}
+              <span class="text-gray-500">Clicked</span>
+              {% if p.get('label') == 'recommendation_click' %}<span class="text-gray-500">a recommended course</span>{% endif %}
+              {% if course %}<span class="font-medium">{{ course }}</span>
+              {% elif p.get('label') and p.get('label') != 'recommendation_click' %}<span class="font-medium">{{ p['label'] | replace('_',' ') }}</span>{% endif %}
+              {% if p.get('category') %}<span class="text-xs text-gray-400 uppercase ml-1">{{ p['category'] | replace('-',' ') }}</span>{% endif %}
+            {% elif e.event_type == 'scroll_depth' %}
+              <span class="text-gray-500">Scrolled</span> <span class="font-medium">{{ p.get('depth_pct', 0) }}%</span>
+              <span class="text-gray-500">of {% if course %}<span class="font-medium text-udemy-text">{{ course }}</span>{% else %}the page{% endif %}</span>
+            {% elif e.event_type in ('view', 'product_view') and p.get('time_spent') %}
+              <span class="text-gray-500">Spent</span> <span class="font-medium">{{ p['time_spent'] }}s</span>
+              <span class="text-gray-500">reading</span>
+              {% if course %}<span class="font-medium">{{ course }}</span>{% endif %}
+              <span class="text-[10px] font-bold text-udemy-purple bg-purple-50 rounded px-1.5 py-0.5 ml-1">dwell</span>
+            {% elif e.event_type in ('view', 'product_view') and p.get('product_id') %}
+              <span class="text-gray-500">Viewed course</span>
+              <span class="font-medium">{{ course or ('#' ~ p['product_id']) }}</span>
+              {% if p.get('category') %}<span class="text-xs text-gray-400 uppercase ml-1">{{ p['category'] | replace('-',' ') }}</span>{% endif %}
+            {% elif e.event_type in ('view', 'page_view') %}
+              <span class="text-gray-500">Visited</span>
+              <span class="font-medium">{{ {'/': 'the homepage', '/journey': 'My Journey', '/agent': 'How It Works', '/admin': 'the admin panel'}.get(p.get('page'), p.get('page', 'a page')) }}</span>
+            {% else %}
+              <span class="text-gray-500 capitalize">{{ e.event_type | replace('_',' ') }}</span>
+              {% if p.get('query') %}<span class="font-medium">"{{ p['query'] }}"</span>
+              {% elif course %}<span class="font-medium">{{ course }}</span>
+              {% elif p.get('category') %}<span class="font-medium">{{ p['category'] | replace('-',' ') }}</span>
+              {% endif %}
+            {% endif %}
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+      {% else %}
+      <p class="text-sm text-gray-400">No activity yet.</p>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

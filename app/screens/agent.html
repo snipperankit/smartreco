@@ -1,0 +1,414 @@
+{% extends "base.html" %}
+{% block title %}How It Works — SmartReco{% endblock %}
+
+{% block content %}
+<!-- Hero -->
+<section class="bg-gradient-to-br from-gray-900 via-purple-950 to-gray-900 text-white">
+  <div class="max-w-[1340px] mx-auto px-4 py-12 md:py-16">
+    <div class="inline-flex items-center gap-2 bg-white/10 border border-white/20 rounded-full px-4 py-1.5 text-xs font-medium text-purple-200 mb-6">
+      <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+      Behind the scenes — how SmartReco picks courses for you. Open to everyone, no admin access needed.
+    </div>
+    <div class="flex items-center gap-3 mb-4">
+      <div class="w-12 h-12 rounded-xl bg-udemy-purple/20 border border-udemy-purple/40 flex items-center justify-center">
+        <svg class="w-7 h-7 text-udemy-purple" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.455 2.456L21.75 6l-1.036.259a3.375 3.375 0 00-2.455 2.456zM16.894 20.567L16.5 21.75l-.394-1.183a2.25 2.25 0 00-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 001.423-1.423l.394-1.183.394 1.183a2.25 2.25 0 001.423 1.423l1.183.394-1.183.394a2.25 2.25 0 00-1.423 1.423z"/></svg>
+      </div>
+      <div>
+        <h1 class="text-3xl md:text-4xl font-extrabold">How Your Recommendations Are Made</h1>
+        <p class="text-purple-300 text-sm mt-1">A LangGraph agent: 7-node StateGraph with conditional edges, reflection, and bounded refinement</p>
+      </div>
+    </div>
+    <p class="text-gray-300 text-base max-w-3xl leading-relaxed">
+      When you browse, search and click courses, SmartReco's <strong class="text-white">AI agent</strong> quietly builds a picture of what you're
+      interested in — then walks through the pipeline below to pick your personalized courses. It's a <strong class="text-white">stateful agent</strong>,
+      not a wrapped LLM call: it reasons over your behavior, plans a retrieval strategy, grades its own results, and reflects on output quality.
+    </p>
+  </div>
+</section>
+
+<div class="max-w-[1340px] mx-auto px-4 py-10">
+  <!-- Graph visualization -->
+  <div class="bg-white border border-udemy-border rounded-xl p-6 md:p-10 shadow-md mb-10">
+    <h2 class="text-xl font-extrabold text-udemy-text mb-6 flex items-center gap-2">
+      <svg class="w-5 h-5 text-udemy-purple" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M7.5 21L3 16.5m0 0L7.5 12M3 16.5h13.5m0-13.5L21 7.5m0 0L16.5 12M21 7.5H7.5"/></svg>
+      Agent Graph Flow
+    </h2>
+    <!-- Visual pipeline -->
+    <div class="overflow-x-auto">
+      <div class="flex items-start gap-0 min-w-[900px] py-4">
+        <!-- Node 1: Analyze -->
+        <div class="node-card flex flex-col items-center w-[140px]">
+          <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center text-white shadow-lg shadow-blue-500/20">
+            <svg class="w-7 h-7" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M10.5 6a7.5 7.5 0 107.5 7.5h-7.5V6z"/><path d="M13.5 10.5H21A7.5 7.5 0 0013.5 3v7.5z"/></svg>
+          </div>
+          <div class="mt-2 text-xs font-bold text-udemy-text text-center">Analyze<br/>Behavior</div>
+          <div class="mt-1 text-[10px] text-gray-400 text-center leading-tight">Decay-weighted<br/>interest profile</div>
+        </div>
+        <div class="flex items-center h-16 text-gray-300 text-2xl px-1">→</div>
+
+        <!-- Node 2: Plan -->
+        <div class="node-card flex flex-col items-center w-[140px]">
+          <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-indigo-500 to-indigo-700 flex items-center justify-center text-white shadow-lg shadow-indigo-500/20">
+            <svg class="w-7 h-7" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 002.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 00-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 00.75-.75 2.25 2.25 0 00-.1-.664m-5.8 0A2.251 2.251 0 0113.5 2.25H15a2.25 2.25 0 012.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25zM6.75 12h.008v.008H6.75V12zm0 3h.008v.008H6.75V15zm0 3h.008v.008H6.75V18z"/></svg>
+          </div>
+          <div class="mt-2 text-xs font-bold text-udemy-text text-center">Plan<br/>Strategy</div>
+          <div class="mt-1 text-[10px] text-gray-400 text-center leading-tight">cold_start | progression<br/>broadening | balanced</div>
+        </div>
+        <div class="flex items-center h-16 text-gray-300 text-2xl px-1">→</div>
+
+        <!-- Node 3: Retrieve -->
+        <div class="node-card flex flex-col items-center w-[140px]">
+          <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-emerald-500 to-emerald-700 flex items-center justify-center text-white shadow-lg shadow-emerald-500/20">
+            <svg class="w-7 h-7" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+          </div>
+          <div class="mt-2 text-xs font-bold text-udemy-text text-center">Retrieve<br/>(RAG)</div>
+          <div class="mt-1 text-[10px] text-gray-400 text-center leading-tight">Semantic search<br/>ChromaDB vectors</div>
+        </div>
+        <div class="flex items-center h-16 text-gray-300 text-2xl px-1">→</div>
+
+        <!-- Node 4: Grade -->
+        <div class="node-card flex flex-col items-center w-[140px]">
+          <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-amber-500 to-amber-700 flex items-center justify-center text-white shadow-lg shadow-amber-500/20">
+            <svg class="w-7 h-7" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 3v17.25m0 0c-1.472 0-2.882.265-4.185.75M12 20.25c1.472 0 2.882.265 4.185.75M18.75 4.97A48.416 48.416 0 0012 4.5c-2.291 0-4.545.16-6.75.47m13.5 0c1.01.143 2.01.317 3 .52m-3-.52l2.62 10.726c.122.499-.106 1.028-.589 1.202a5.988 5.988 0 01-2.031.352 5.988 5.988 0 01-2.031-.352c-.483-.174-.711-.703-.59-1.202L18.75 4.971zm-16.5.52c.99-.203 1.99-.377 3-.52m0 0l2.62 10.726c.122.499-.106 1.028-.589 1.202a5.989 5.989 0 01-2.031.352 5.989 5.989 0 01-2.031-.352c-.483-.174-.711-.703-.59-1.202L5.25 4.971z"/></svg>
+          </div>
+          <div class="mt-2 text-xs font-bold text-udemy-text text-center">Grade<br/>Results</div>
+          <div class="mt-1 text-[10px] text-gray-400 text-center leading-tight">Score ≥ 0.30?<br/>or refine ↩</div>
+        </div>
+        <div class="flex items-center h-16 text-gray-300 text-2xl px-1">→</div>
+
+        <!-- Node 5: Generate -->
+        <div class="node-card flex flex-col items-center w-[140px]">
+          <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-udemy-purple to-purple-800 flex items-center justify-center text-white shadow-lg shadow-purple-500/20">
+            <svg class="w-7 h-7" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z"/></svg>
+          </div>
+          <div class="mt-2 text-xs font-bold text-udemy-text text-center">Generate<br/>Narrative</div>
+          <div class="mt-1 text-[10px] text-gray-400 text-center leading-tight">LLM persuasion<br/>Mesh API</div>
+        </div>
+        <div class="flex items-center h-16 text-gray-300 text-2xl px-1">→</div>
+
+        <!-- Node 6: Reflect -->
+        <div class="node-card flex flex-col items-center w-[140px]">
+          <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-rose-500 to-rose-700 flex items-center justify-center text-white shadow-lg shadow-rose-500/20">
+            <svg class="w-7 h-7" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99"/></svg>
+          </div>
+          <div class="mt-2 text-xs font-bold text-udemy-text text-center">Reflect<br/>Quality</div>
+          <div class="mt-1 text-[10px] text-gray-400 text-center leading-tight">Generic check<br/>Strategy align</div>
+        </div>
+        <div class="flex items-center h-16 text-gray-300 text-2xl px-1">→</div>
+
+        <!-- End -->
+        <div class="node-card flex flex-col items-center w-[100px]">
+          <div class="w-16 h-16 rounded-full bg-gradient-to-br from-green-500 to-green-700 flex items-center justify-center text-white shadow-lg shadow-green-500/20">
+            <svg class="w-7 h-7" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M4.5 12.75l6 6 9-13.5"/></svg>
+          </div>
+          <div class="mt-2 text-xs font-bold text-udemy-text text-center">Done</div>
+          <div class="mt-1 text-[10px] text-gray-400 text-center leading-tight">Deliver recs<br/>to user</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Conditional edges legend -->
+    <div class="mt-6 flex flex-wrap gap-4 text-xs">
+      <div class="flex items-center gap-2 px-3 py-2 bg-amber-50 border border-amber-200 rounded-lg">
+        <span class="w-5 h-0.5 bg-amber-500 block"></span>
+        <span class="text-amber-800 font-medium">Grade → Refine (weak score, max 1 retry) → back to Retrieve</span>
+      </div>
+      <div class="flex items-center gap-2 px-3 py-2 bg-rose-50 border border-rose-200 rounded-lg">
+        <span class="w-5 h-0.5 bg-rose-500 block"></span>
+        <span class="text-rose-800 font-medium">Reflect → Regenerate (if generic, max 1 retry) → back to Generate</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Architecture detail cards -->
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-10">
+    <div class="bg-white border border-udemy-border rounded-xl p-6 shadow-md">
+      <div class="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center mb-3">
+        <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M10.5 6a7.5 7.5 0 107.5 7.5h-7.5V6z"/></svg>
+      </div>
+      <h3 class="font-bold text-udemy-text mb-2">Behavioral Analysis</h3>
+      <p class="text-sm text-gray-600 leading-relaxed">Exponential decay weighting — recent events count more. TF-IDF-style search term scoring. Dwell-time multipliers for engagement depth.</p>
+    </div>
+
+    <div class="bg-white border border-udemy-border rounded-xl p-6 shadow-md">
+      <div class="w-10 h-10 rounded-lg bg-indigo-100 flex items-center justify-center mb-3">
+        <svg class="w-5 h-5 text-indigo-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z"/></svg>
+      </div>
+      <h3 class="font-bold text-udemy-text mb-2">Strategy Planning</h3>
+      <p class="text-sm text-gray-600 leading-relaxed">Theory-of-user reasoning. Cold-start users get popular anchors. Focused learners get progression. Explorers get cross-domain picks.</p>
+    </div>
+
+    <div class="bg-white border border-udemy-border rounded-xl p-6 shadow-md">
+      <div class="w-10 h-10 rounded-lg bg-emerald-100 flex items-center justify-center mb-3">
+        <svg class="w-5 h-5 text-emerald-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20.25 6.375c0 2.278-3.694 4.125-8.25 4.125S3.75 8.653 3.75 6.375m16.5 0c0-2.278-3.694-4.125-8.25-4.125S3.75 4.097 3.75 6.375m16.5 0v11.25c0 2.278-3.694 4.125-8.25 4.125s-8.25-1.847-8.25-4.125V6.375m16.5 0v3.75m-16.5-3.75v3.75m16.5 0v3.75C20.25 16.153 16.556 18 12 18s-8.25-1.847-8.25-4.125v-3.75m16.5 0c0 2.278-3.694 4.125-8.25 4.125s-8.25-1.847-8.25-4.125"/></svg>
+      </div>
+      <h3 class="font-bold text-udemy-text mb-2">Vector RAG Retrieval</h3>
+      <p class="text-sm text-gray-600 leading-relaxed">ChromaDB with local ONNX MiniLM-L6-v2 embeddings. Category boosting, sub-topic boosting, level-preference filtering, seen-course exclusion.</p>
+    </div>
+
+    <div class="bg-white border border-udemy-border rounded-xl p-6 shadow-md">
+      <div class="w-10 h-10 rounded-lg bg-amber-100 flex items-center justify-center mb-3">
+        <svg class="w-5 h-5 text-amber-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 3v17.25m0 0c-1.472 0-2.882.265-4.185.75M12 20.25c1.472 0 2.882.265 4.185.75"/></svg>
+      </div>
+      <h3 class="font-bold text-udemy-text mb-2">Grading & Refinement</h3>
+      <p class="text-sm text-gray-600 leading-relaxed">If retrieval score &lt; 0.30, the agent broadens its query and retries (max 1 refine). Conditional edge prevents shipping irrelevant recs.</p>
+    </div>
+
+    <div class="bg-white border border-udemy-border rounded-xl p-6 shadow-md">
+      <div class="w-10 h-10 rounded-lg bg-purple-100 flex items-center justify-center mb-3">
+        <svg class="w-5 h-5 text-udemy-purple" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z"/></svg>
+      </div>
+      <h3 class="font-bold text-udemy-text mb-2">Persuasive Generation</h3>
+      <p class="text-sm text-gray-600 leading-relaxed">Exactly ONE creative LLM call (Mesh API: tencent/hy3). Strategy-aware prompt angle. Diversity-enforced shortlist (max 2 per category).</p>
+    </div>
+
+    <div class="bg-white border border-udemy-border rounded-xl p-6 shadow-md">
+      <div class="w-10 h-10 rounded-lg bg-rose-100 flex items-center justify-center mb-3">
+        <svg class="w-5 h-5 text-rose-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99"/></svg>
+      </div>
+      <h3 class="font-bold text-udemy-text mb-2">Self-Reflection</h3>
+      <p class="text-sm text-gray-600 leading-relaxed">Deterministic quality gate (no extra LLM call). Checks: generic-phrase detector, strategy-alignment, narrative-on-target. Regenerates once if failed.</p>
+    </div>
+  </div>
+
+  <!-- Tech stack & triggers -->
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <div class="bg-white border border-udemy-border rounded-xl p-6 shadow-md">
+      <h3 class="font-bold text-udemy-text mb-4 flex items-center gap-2">
+        <svg class="w-5 h-5 text-udemy-purple" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M6.75 7.5l3 2.25-3 2.25m4.5 0h3m-9 8.25h13.5A2.25 2.25 0 0021 18V6a2.25 2.25 0 00-2.25-2.25H5.25A2.25 2.25 0 003 6v12a2.25 2.25 0 002.25 2.25z"/></svg>
+        Tech Stack
+      </h3>
+      <div class="space-y-3 text-sm">
+        <div class="flex items-center gap-3 p-3 bg-udemy-bg rounded-lg">
+          <span class="font-bold text-udemy-purple w-28 shrink-0">LangGraph</span>
+          <span class="text-gray-600">StateGraph with 7 nodes, 2 conditional edges, bounded loops</span>
+        </div>
+        <div class="flex items-center gap-3 p-3 bg-udemy-bg rounded-lg">
+          <span class="font-bold text-udemy-purple w-28 shrink-0">ChromaDB</span>
+          <span class="text-gray-600">Local ONNX MiniLM-L6-v2 embeddings, cosine similarity</span>
+        </div>
+        <div class="flex items-center gap-3 p-3 bg-udemy-bg rounded-lg">
+          <span class="font-bold text-udemy-purple w-28 shrink-0">Mesh API</span>
+          <span class="text-gray-600">OpenAI-compatible gateway, model: tencent/hy3 (free tier)</span>
+        </div>
+        <div class="flex items-center gap-3 p-3 bg-udemy-bg rounded-lg">
+          <span class="font-bold text-udemy-purple w-28 shrink-0">FastAPI</span>
+          <span class="text-gray-600">Async event buffer, background triggers, SSE streaming</span>
+        </div>
+        <div class="flex items-center gap-3 p-3 bg-udemy-bg rounded-lg">
+          <span class="font-bold text-udemy-purple w-28 shrink-0">SQLAlchemy</span>
+          <span class="text-gray-600">Async SQLite, dual-write pattern (SQL + vector store)</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="bg-white border border-udemy-border rounded-xl p-6 shadow-md">
+      <h3 class="font-bold text-udemy-text mb-4 flex items-center gap-2">
+        <svg class="w-5 h-5 text-udemy-purple" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z"/></svg>
+        Agent Triggers
+      </h3>
+      <div class="space-y-3 text-sm">
+        <div class="p-3 bg-udemy-bg rounded-lg">
+          <div class="font-bold text-udemy-text">Manual Refresh</div>
+          <div class="text-gray-500 text-xs mt-0.5">User clicks "Refresh" on the AI Picks panel → POST /api/recommendations/refresh</div>
+        </div>
+        <div class="p-3 bg-udemy-bg rounded-lg">
+          <div class="font-bold text-udemy-text">Threshold Trigger</div>
+          <div class="text-gray-500 text-xs mt-0.5">After 3+ behavioral events, the buffer auto-triggers the agent in background</div>
+        </div>
+        <div class="p-3 bg-udemy-bg rounded-lg">
+          <div class="font-bold text-udemy-text">Daily Digest (Proactive)</div>
+          <div class="text-gray-500 text-xs mt-0.5">APScheduler runs the agent daily at 15:00 UTC for opted-in users</div>
+        </div>
+        <div class="p-3 bg-udemy-bg rounded-lg">
+          <div class="font-bold text-udemy-text">Speculative Pre-Compute</div>
+          <div class="text-gray-500 text-xs mt-0.5">On login, if recs are stale (&gt;1h), agent fires speculatively</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Live demo section -->
+  {% if user %}
+  <div class="mt-10 bg-white border border-udemy-border rounded-xl p-6 shadow-md">
+    <h3 class="font-bold text-udemi-text mb-2 flex items-center gap-2 text-lg">
+      <span class="w-2.5 h-2.5 rounded-full bg-green-500 animate-pulse"></span>
+      Live Agent Run
+    </h3>
+    <p class="text-sm text-gray-600 mb-5">Trigger the recommendation agent now and see the full reasoning trace.</p>
+    <button onclick="runAgent()" id="run-btn" class="px-6 py-3 bg-udemy-purple text-white font-bold hover:bg-udemy-hover transition rounded-lg shadow-lg shadow-purple-500/20 flex items-center gap-2">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.347a1.125 1.125 0 010 1.972l-11.54 6.347a1.125 1.125 0 01-1.667-.986V5.653z"/></svg>
+      Run Agent Pipeline
+    </button>
+    <div id="agent-output" class="mt-6 hidden space-y-4">
+      <!-- Status bar -->
+      <div id="agent-status" class="flex items-center gap-3 p-4 rounded-xl bg-gray-50 border border-gray-200">
+        <div id="status-icon" class="w-10 h-10 rounded-full bg-udemy-purple/10 flex items-center justify-center">
+          <svg class="w-5 h-5 text-udemy-purple animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+        </div>
+        <div>
+          <div id="status-text" class="font-bold text-udemy-text text-sm">Running agent pipeline...</div>
+          <div id="status-sub" class="text-xs text-gray-500">POST /api/recommendations/refresh</div>
+        </div>
+        <div id="status-time" class="ml-auto text-xs font-mono text-gray-400 hidden"></div>
+      </div>
+
+      <!-- Agent State Panel -->
+      <div id="state-panel" class="hidden rounded-xl border border-gray-200 overflow-hidden">
+        <div class="bg-gradient-to-r from-gray-900 to-gray-800 px-5 py-3 flex items-center justify-between">
+          <span class="text-xs font-bold text-gray-300 uppercase tracking-wider">Agent Reasoning Trace</span>
+          <span id="strategy-badge" class="hidden px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider"></span>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-0 divide-y md:divide-y-0 md:divide-x divide-gray-100">
+          <!-- State metrics -->
+          <div class="p-5 space-y-3" id="state-metrics"></div>
+          <!-- Recommendations -->
+          <div class="p-5" id="state-recs"></div>
+          <!-- Narrative -->
+          <div class="p-5" id="state-narrative"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  {% else %}
+  <div class="mt-10 bg-white border border-udemy-border rounded-xl p-6 shadow-md text-center">
+    <p class="text-gray-500 mb-3">Sign in and browse some courses to see the agent in action with your own behavioral data.</p>
+    <a href="/login" class="inline-block px-6 py-3 bg-udemy-purple text-white font-bold hover:bg-udemy-hover transition rounded-lg">Sign in</a>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+async function runAgent() {
+  const btn = document.getElementById('run-btn');
+  const output = document.getElementById('agent-output');
+  const statusIcon = document.getElementById('status-icon');
+  const statusText = document.getElementById('status-text');
+  const statusSub = document.getElementById('status-sub');
+  const statusTime = document.getElementById('status-time');
+  const statePanel = document.getElementById('state-panel');
+  const stateMetrics = document.getElementById('state-metrics');
+  const stateRecs = document.getElementById('state-recs');
+  const stateNarrative = document.getElementById('state-narrative');
+  const stratBadge = document.getElementById('strategy-badge');
+
+  btn.disabled = true;
+  btn.innerHTML = '<svg class="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Running…';
+  output.classList.remove('hidden');
+  statePanel.classList.add('hidden');
+  statusIcon.innerHTML = '<svg class="w-5 h-5 text-udemy-purple animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>';
+  statusText.textContent = 'Running agent pipeline...';
+  statusSub.textContent = 'POST /api/recommendations/refresh → analyze → plan → retrieve → grade → generate → reflect';
+  statusTime.classList.add('hidden');
+
+  try {
+    const t0 = performance.now();
+    const r = await fetch('/api/recommendations/refresh', { method: 'POST' });
+    const data = await r.json();
+    const ms = Math.round(performance.now() - t0);
+    const secs = (ms / 1000).toFixed(1);
+
+    // Status: success
+    statusIcon.innerHTML = '<svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M4.5 12.75l6 6 9-13.5"/></svg>';
+    statusIcon.className = 'w-10 h-10 rounded-full bg-green-100 flex items-center justify-center';
+    statusText.textContent = 'Agent pipeline completed';
+    statusSub.textContent = `8-node LangGraph workflow executed successfully`;
+    statusTime.textContent = `${secs}s`;
+    statusTime.classList.remove('hidden');
+
+    // Strategy badge
+    const rat = data.rationale || {};
+    if (rat.strategy) {
+      const colors = {
+        progression: 'bg-blue-100 text-blue-700 border border-blue-200',
+        broadening: 'bg-amber-100 text-amber-700 border border-amber-200',
+        cold_start: 'bg-gray-100 text-gray-700 border border-gray-200',
+        balanced: 'bg-green-100 text-green-700 border border-green-200',
+      };
+      const c = rat.strategy.startsWith('explorer_') ? 'bg-purple-100 text-purple-700 border border-purple-200' : (colors[rat.strategy] || colors.balanced);
+      stratBadge.className = `px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${c}`;
+      stratBadge.textContent = rat.strategy.replace('_', ' ');
+      stratBadge.classList.remove('hidden');
+    }
+
+    // State metrics
+    stateMetrics.innerHTML = '<div class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Agent State</div>';
+    const metrics = [
+      { label: 'Strategy', value: rat.strategy || '—', icon: '🎯' },
+      { label: 'Hot Categories', value: (rat.hot_categories || []).join(', ') || '—', icon: '🔥' },
+      { label: 'Concentration', value: rat.concentration != null ? `${(rat.concentration * 100).toFixed(0)}%` : '—', icon: '📊' },
+      { label: 'Retrieval Query', value: rat.query ? `"${rat.query}"` : '—', icon: '🔍' },
+      { label: 'Retrieval Score', value: rat.retrieval_score ? `${(rat.retrieval_score * 100).toFixed(1)}%` : '—', icon: '📈' },
+      { label: 'Refine Loops', value: (rat.refine_count || 0) + (rat.refine_count > 0 ? ' (broadened)' : ''), icon: '🔄' },
+      { label: 'Seen Excluded', value: (rat.seen_excluded || []).length + ' courses', icon: '🚫' },
+      { label: 'Regen Count', value: rat.regen_count || 0, icon: '♻️' },
+    ];
+    metrics.forEach(m => {
+      stateMetrics.innerHTML += `
+        <div class="flex items-start gap-2.5">
+          <span class="text-sm shrink-0">${m.icon}</span>
+          <div class="min-w-0">
+            <div class="text-[10px] text-gray-400 uppercase font-semibold">${m.label}</div>
+            <div class="text-sm font-medium text-gray-800 truncate" title="${m.value}">${m.value}</div>
+          </div>
+        </div>`;
+    });
+
+    // Recommendations
+    stateRecs.innerHTML = '<div class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Recommended Courses</div>';
+    if (data.products?.length) {
+      const levelIcons = { beginner: '🌱', intermediate: '⚡', advanced: '🔥' };
+      data.products.forEach((p, i) => {
+        const icon = levelIcons[p.level] || '📘';
+        stateRecs.innerHTML += `
+          <div class="flex items-start gap-3 py-2.5 ${i > 0 ? 'border-t border-gray-100' : ''}">
+            <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-udemy-purple/10 to-udemy-purple/5 flex items-center justify-center text-sm shrink-0 font-bold text-udemy-purple">${i+1}</div>
+            <div class="min-w-0">
+              <div class="text-sm font-semibold text-gray-800 leading-tight">${p.title}</div>
+              <div class="flex items-center gap-2 mt-1 text-[11px] text-gray-500">
+                <span>${icon} ${p.level || 'all'}</span>
+                <span class="text-gray-300">·</span>
+                <span class="px-1.5 py-0.5 bg-gray-100 rounded text-gray-600">${p.category}</span>
+                <span class="text-gray-300">·</span>
+                <span class="font-semibold text-green-700">$${p.price}</span>
+              </div>
+            </div>
+          </div>`;
+      });
+    } else {
+      stateRecs.innerHTML += '<p class="text-sm text-gray-400 italic">No new recommendations (behavior unchanged)</p>';
+    }
+
+    // Narrative
+    stateNarrative.innerHTML = '<div class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">AI Narrative</div>';
+    if (data.narrative_copy) {
+      stateNarrative.innerHTML += `
+        <div class="relative">
+          <div class="absolute -left-1 top-0 bottom-0 w-1 rounded-full bg-gradient-to-b from-udemy-purple to-purple-300"></div>
+          <blockquote class="pl-5 text-sm text-gray-700 leading-relaxed italic">
+            "${data.narrative_copy}"
+          </blockquote>
+        </div>
+        <div class="mt-4 flex items-center gap-2 text-[10px] text-gray-400">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z"/></svg>
+          Generated by tencent/hy3 via Mesh API
+        </div>`;
+    } else {
+      stateNarrative.innerHTML += '<p class="text-sm text-gray-400 italic">No narrative generated</p>';
+    }
+
+    statePanel.classList.remove('hidden');
+
+  } catch (e) {
+    statusIcon.innerHTML = '<svg class="w-5 h-5 text-red-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12"/></svg>';
+    statusIcon.className = 'w-10 h-10 rounded-full bg-red-100 flex items-center justify-center';
+    statusText.textContent = 'Agent pipeline failed';
+    statusSub.textContent = e.message;
+  }
+  btn.disabled = false;
+  btn.innerHTML = '<svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.347a1.125 1.125 0 010 1.972l-11.54 6.347a1.125 1.125 0 01-1.667-.986V5.653z"/></svg> Run Agent Pipeline';
+}
+</script>
+{% endblock %}

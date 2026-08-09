@@ -1,0 +1,27 @@
+services:
+  - type: web
+    name: smartreco
+    runtime: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: MESH_API_KEY
+        sync: false
+      - key: MESH_BASE_URL
+        value: https://api.meshapi.ai/v1
+      - key: MESH_CHAT_MODEL
+        value: tencent/hy3
+      - key: MESH_FAST_MODEL
+        value: minimax/m2-her
+      - key: MESH_EMBED_MODEL
+        value: openai/text-embedding-3-small
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DATABASE_URL
+        value: sqlite+aiosqlite:///./smartreco.db
+      - key: CHROMA_DIR
+        value: ./chroma_store
+      - key: ENABLE_SCHEDULER
+        value: "true"
+      - key: DELIVERY_CHANNELS
+        value: mailbox

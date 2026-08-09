@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{% block title %}SmartReco{% endblock %}</title>
+  <meta name="sr-context" content='{% block sr_context %}{}{% endblock %}' />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            udemy: { dark: '#1c1d1f', purple: '#a435f0', hover: '#8710d8', light: '#f7f9fa', border: '#c9d1dc', text: '#1f2126', bg: '#e8edf4' },
+          },
+          fontFamily: { body: ['system-ui', '-apple-system', 'Segoe UI', 'Roboto', 'sans-serif'] },
+        }
+      }
+    }
+  </script>
+  <style>
+    body { font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; }
+    .line-clamp-2 { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+  </style>
+</head>
+<body class="bg-udemy-bg text-udemy-text min-h-screen">
+  <!-- Top banner -->
+  <div class="bg-udemy-dark text-white text-center text-sm py-2.5 px-4">
+    <span class="font-medium">AI-powered recommendations</span> — Browse courses and get personalized picks powered by agentic AI
+  </div>
+
+  <!-- Navbar -->
+  <nav class="bg-white/95 backdrop-blur-sm border-b border-udemy-border sticky top-0 z-20 shadow-sm">
+    <div class="max-w-[1340px] mx-auto px-4 h-[70px] flex items-center gap-6">
+      <!-- Logo -->
+      <a href="/" class="flex items-center gap-1 shrink-0">
+        <svg class="w-8 h-8 text-udemy-purple" viewBox="0 0 32 32" fill="currentColor"><rect x="4" y="6" width="7" height="20" rx="2"/><rect x="14" y="10" width="7" height="16" rx="2"/><rect x="24" y="2" width="4" height="24" rx="2" opacity=".5"/></svg>
+        <span class="text-xl font-extrabold tracking-tight text-udemy-text">Smart<span class="text-udemy-purple">Reco</span></span>
+      </a>
+
+      <!-- Search bar -->
+      <div class="flex-1 max-w-2xl relative hidden md:block">
+        <form onsubmit="event.preventDefault(); if(window.runSearch) runSearch();" class="flex">
+          <div class="flex-1 flex items-center border border-udemy-text rounded-full bg-udemy-light overflow-hidden hover:bg-gray-100 transition">
+            <svg class="w-4 h-4 ml-4 text-gray-500 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+            <input id="global-search" type="text" placeholder="Search for anything"
+                   class="w-full bg-transparent px-3 py-2.5 text-sm outline-none placeholder-gray-500" />
+          </div>
+        </form>
+      </div>
+
+      <!-- Right section -->
+      <div class="flex items-center gap-3 text-sm shrink-0">
+        <a href="/agent" title="See how the recommendation AI works under the hood" class="hidden sm:block text-udemy-text hover:text-udemy-purple font-medium">How It Works</a>
+        {% if user %}
+          {% if user.role != "admin" %}
+          <a href="/journey" class="hidden sm:block text-udemy-text hover:text-udemy-purple font-medium">My Journey</a>
+          {% endif %}
+          {% if user.role == "admin" %}
+            <a href="/admin" class="hidden sm:block text-udemy-text hover:text-udemy-purple font-medium">Admin</a>
+          {% endif %}
+          <div class="w-8 h-8 rounded-full bg-udemy-dark text-white flex items-center justify-center text-xs font-bold" title="{{ user.email }}">
+            {{ user.email[0] | upper }}
+          </div>
+          <button onclick="logout()" class="text-udemy-text hover:text-udemy-purple font-medium">Log out</button>
+        {% else %}
+          <a href="/login" class="px-4 py-2 border border-udemy-text text-udemy-text font-bold text-sm hover:bg-gray-100 transition">Log in</a>
+          <a href="/login" class="px-4 py-2 bg-udemy-purple text-white font-bold text-sm hover:bg-udemy-hover transition">Sign up</a>
+        {% endif %}
+      </div>
+    </div>
+  </nav>
+
+  <main>
+    {% block content %}{% endblock %}
+  </main>
+
+  <!-- Footer -->
+  <footer class="bg-udemy-dark text-white mt-16">
+    <div class="max-w-[1340px] mx-auto px-4 py-8 flex flex-col md:flex-row items-center justify-between gap-4 text-sm text-gray-400">
+      <div class="flex items-center gap-2">
+        <svg class="w-6 h-6 text-udemy-purple" viewBox="0 0 32 32" fill="currentColor"><rect x="4" y="6" width="7" height="20" rx="2"/><rect x="14" y="10" width="7" height="16" rx="2"/><rect x="24" y="2" width="4" height="24" rx="2" opacity=".5"/></svg>
+        <span class="font-bold text-white">SmartReco</span>
+      </div>
+      <span>Built with FastAPI · LangGraph · Mesh API · ChromaDB</span>
+      <span>Hackathon 2026</span>
+    </div>
+  </footer>
+
+  <script src="/static/tracker.js"></script>
+  <script>
+    async function logout() {
+      await fetch("/api/auth/logout", { method: "POST" });
+      location.href = "/";
+    }
+  </script>
+  {% block scripts %}{% endblock %}
+</body>
+</html>

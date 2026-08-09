@@ -1,0 +1,400 @@
+{% extends "base.html" %}
+{% block title %}Admin Dashboard — SmartReco{% endblock %}
+
+{% block content %}
+<div class="min-h-screen">
+  <!-- Header -->
+  <div class="bg-udemy-dark text-white">
+    <div class="max-w-[1340px] mx-auto px-4 pt-6">
+      <h1 class="text-2xl font-extrabold">Admin Dashboard</h1>
+      <p class="text-gray-400 text-sm mt-1">Monitor the system, watch user behavior live, and manage the course catalog.</p>
+      <!-- Tabs -->
+      <div class="flex gap-6 mt-5 text-sm font-bold" id="admin-tabs">
+        <button data-tab="overview" onclick="showTab('overview')" class="pb-3 border-b-4 border-udemy-purple text-white">Overview</button>
+        <button data-tab="activity" onclick="showTab('activity')" class="pb-3 border-b-4 border-transparent text-gray-400 hover:text-white transition">Users &amp; Live Activity</button>
+        <button data-tab="catalog" onclick="showTab('catalog')" class="pb-3 border-b-4 border-transparent text-gray-400 hover:text-white transition">Catalog ({{ products|length }})</button>
+        <button data-tab="mailbox" onclick="showTab('mailbox')" class="pb-3 border-b-4 border-transparent text-gray-400 hover:text-white transition">✉ Mailbox</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="max-w-[1340px] mx-auto px-4 py-6">
+
+    <!-- ============ TAB 1: OVERVIEW ============ -->
+    <section id="tab-overview">
+    <!-- Metrics -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8" id="metrics">
+      <div class="bg-white border border-udemy-border rounded-lg p-5">
+        <div class="text-xs font-bold text-gray-500 uppercase tracking-wider">Users</div>
+        <div class="text-3xl font-extrabold text-udemy-text mt-2" id="m-users">—</div>
+        <div class="text-sm text-green-600 font-medium mt-1" id="m-users-active"></div>
+      </div>
+      <div class="bg-white border border-udemy-border rounded-lg p-5">
+        <div class="text-xs font-bold text-gray-500 uppercase tracking-wider">Events Tracked</div>
+        <div class="text-3xl font-extrabold text-udemy-text mt-2" id="m-events">—</div>
+        <div class="text-sm text-gray-400 mt-1" id="m-events-24h"></div>
+      </div>
+      <div class="bg-white border border-udemy-border rounded-lg p-5">
+        <div class="text-xs font-bold text-gray-500 uppercase tracking-wider">Recs Generated</div>
+        <div class="text-3xl font-extrabold text-udemy-text mt-2" id="m-recs">—</div>
+        <div class="text-sm text-gray-400 mt-1" id="m-recs-24h"></div>
+      </div>
+      <div class="bg-white border border-udemy-border rounded-lg p-5">
+        <div class="text-xs font-bold text-gray-500 uppercase tracking-wider" title="Course catalog is written to both SQL and the vector store — this checks they match">Catalog Sync</div>
+        <div class="text-3xl font-extrabold mt-2" id="m-sync">—</div>
+        <div class="text-sm mt-1" id="m-sync-detail"></div>
+      </div>
+    </div>
+
+    <!-- Charts -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div class="bg-white border border-udemy-border rounded-lg p-6">
+        <h2 class="text-base font-extrabold text-udemy-text mb-1">Event Type Breakdown</h2>
+        <p class="text-xs text-gray-400 mb-4">What kinds of signals users are generating (all time)</p>
+        <div id="event-bars" class="space-y-3"></div>
+      </div>
+      <div class="bg-white border border-udemy-border rounded-lg p-6">
+        <h2 class="text-base font-extrabold text-udemy-text mb-1">Top Categories</h2>
+        <p class="text-xs text-gray-400 mb-4">Where user attention is concentrated</p>
+        <div id="cat-bars" class="space-y-3"></div>
+      </div>
+    </div>
+    </section>
+
+    <!-- ============ TAB 2: USERS & LIVE ACTIVITY ============ -->
+    <section id="tab-activity" class="hidden">
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div class="bg-white border border-udemy-border rounded-lg p-6">
+        <h2 class="text-lg font-extrabold text-udemy-text mb-1 flex items-center gap-2">
+          <svg class="w-5 h-5 text-udemy-purple" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>
+          User Profiles
+        </h2>
+        <p class="text-xs text-gray-400 mb-4">What the AI agent has learned about each user from their browsing</p>
+        <div id="profiles" class="space-y-3 text-sm max-h-[520px] overflow-y-auto">
+          <div class="text-gray-400">Loading...</div>
+        </div>
+      </div>
+
+      <div class="bg-white border border-udemy-border rounded-lg p-6">
+        <div class="flex items-center justify-between mb-1">
+          <h2 class="text-lg font-extrabold text-udemy-text flex items-center gap-2">
+            <span id="live-dot" class="w-2.5 h-2.5 rounded-full bg-gray-300"></span>
+            Live Signal Stream
+          </h2>
+          <button id="live-btn" onclick="toggleLive()" class="px-4 py-1.5 bg-udemy-purple text-white text-sm font-bold hover:bg-udemy-hover transition rounded">▶ Go live</button>
+        </div>
+        <p class="text-xs text-gray-400 mb-4">Watch searches, views and clicks arrive in real time as users browse.</p>
+        <div id="stream-feed" class="divide-y divide-gray-100 max-h-[520px] overflow-y-auto">
+          <div class="text-sm text-gray-400 py-3">Press ▶ Go live to watch behaviour stream in.</div>
+        </div>
+      </div>
+    </div>
+    </section>
+
+    <!-- ============ TAB 3: CATALOG ============ -->
+    <section id="tab-catalog" class="hidden">
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div class="lg:col-span-2 bg-white border border-udemy-border rounded-lg p-6">
+        <h2 class="text-lg font-extrabold text-udemy-text mb-1">Courses ({{ products|length }})</h2>
+        <p class="text-xs text-gray-400 mb-4">Each course lives in SQL and the vector store. "✕ vector drift" means it's missing from search embeddings.</p>
+        <div class="divide-y divide-gray-100 max-h-[620px] overflow-y-auto">
+          {% for p in products %}
+          <div class="py-3 flex items-center justify-between" id="row-{{ p.id }}">
+            <div class="flex items-center gap-3 min-w-0">
+              <img src="{{ p.thumbnail_url or 'https://images.unsplash.com/photo-1518770660439-4636190af475?w=120&h=68&fit=crop&q=60&auto=format' }}" class="w-12 h-8 object-cover rounded shrink-0" />
+              <div class="min-w-0">
+                <div class="font-bold text-sm text-udemy-text truncate">{{ p.title }}</div>
+                <div class="text-xs text-gray-400">
+                  {{ p.category }} · ${{ "%.0f"|format(p.price) }} ·
+                  {% if p.id in synced_ids %}
+                  <span class="text-green-600">● in sync</span>
+                  {% else %}
+                  <span class="text-red-600">✕ vector drift</span>
+                  {% endif %}
+                </div>
+              </div>
+            </div>
+            <button onclick="del({{ p.id }})" class="text-xs text-red-600 hover:underline shrink-0 ml-2">Delete</button>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+
+      <div class="bg-white border border-udemy-border rounded-lg p-6 h-fit">
+        <h2 class="text-lg font-extrabold text-udemy-text mb-1">Add Course</h2>
+        <p class="text-xs text-gray-400 mb-4">New courses are saved to SQL and embedded into the vector store so the AI can recommend them.</p>
+        <div class="space-y-3 text-sm">
+          <input id="f-title" placeholder="Course title" class="w-full border border-udemy-border px-3 py-2.5 focus:outline-none focus:border-udemy-text" />
+          <textarea id="f-desc" placeholder="Description" rows="3" class="w-full border border-udemy-border px-3 py-2.5 focus:outline-none focus:border-udemy-text"></textarea>
+          <input id="f-cat" placeholder="Category (e.g. agentic-ai)" class="w-full border border-udemy-border px-3 py-2.5 focus:outline-none focus:border-udemy-text" />
+          <div class="flex gap-3">
+            <input id="f-price" type="number" placeholder="Price" class="w-1/2 border border-udemy-border px-3 py-2.5 focus:outline-none focus:border-udemy-text" />
+            <input id="f-level" placeholder="Level" class="w-1/2 border border-udemy-border px-3 py-2.5 focus:outline-none focus:border-udemy-text" value="all" />
+          </div>
+          <input id="f-tags" placeholder="tags, comma, separated" class="w-full border border-udemy-border px-3 py-2.5 focus:outline-none focus:border-udemy-text" />
+          <button onclick="createProduct()" class="w-full py-2.5 bg-udemy-purple text-white font-bold hover:bg-udemy-hover transition">
+            Create course
+          </button>
+          <div id="admin-msg" class="text-xs text-gray-500"></div>
+        </div>
+      </div>
+    </div>
+    </section>
+
+    <!-- ============ TAB 4: MAILBOX ============ -->
+    <section id="tab-mailbox" class="hidden">
+      <div class="flex items-center justify-between mb-6">
+        <div>
+          <h2 class="text-lg font-extrabold text-udemy-text">Delivery Inbox</h2>
+          <p class="text-xs text-gray-400 mt-1">Digests delivered by the scheduler. Each message shows both the email body and a Telegram card preview.</p>
+        </div>
+        <button onclick="triggerDigest()" class="px-4 py-2 bg-udemy-purple text-white text-sm font-bold rounded hover:bg-udemy-hover transition">
+          ▶ Run Digest Now
+        </button>
+      </div>
+      <div id="mailbox-list" class="space-y-6">
+        <p class="text-gray-400 text-sm">No digest messages yet. Click "Run Digest Now" to trigger one.</p>
+      </div>
+    </section>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  // --- Tabs ---
+  function showTab(name) {
+    ["overview", "activity", "catalog", "mailbox"].forEach(t => {
+      document.getElementById("tab-" + t).classList.toggle("hidden", t !== name);
+      const btn = document.querySelector(`#admin-tabs [data-tab="${t}"]`);
+      btn.className = t === name
+        ? "pb-3 border-b-4 border-udemy-purple text-white"
+        : "pb-3 border-b-4 border-transparent text-gray-400 hover:text-white transition";
+    });
+    if (name === "activity" && !liveTimer) toggleLive();
+    if (name !== "activity" && liveTimer) toggleLive();
+    if (name === "mailbox") loadMailbox();
+  }
+
+  // --- Dashboard data loaders ---
+  async function loadStats() {
+    try {
+      const r = await fetch("/api/admin/stats");
+      if (!r.ok) return;
+      const d = await r.json();
+      document.getElementById("m-users").textContent = d.users.total;
+      document.getElementById("m-users-active").textContent = d.users.active_24h + " active today";
+      document.getElementById("m-events").textContent = d.events.total.toLocaleString();
+      document.getElementById("m-events-24h").textContent = d.events.last_24h + " in last 24h";
+      document.getElementById("m-recs").textContent = d.recommendations.total;
+      document.getElementById("m-recs-24h").textContent = d.recommendations.last_24h + " in last 24h";
+      const sync = d.catalog.in_sync;
+      document.getElementById("m-sync").innerHTML = sync
+        ? '<span class="text-green-600">✓ In sync</span>'
+        : '<span class="text-red-600">✗ Drift!</span>';
+      document.getElementById("m-sync-detail").textContent =
+        "SQL: " + d.catalog.sql_count + " · Vector: " + d.catalog.vector_count;
+      document.getElementById("m-sync-detail").className =
+        "text-sm mt-1 " + (sync ? "text-green-600" : "text-red-600");
+
+      // Event bars
+      const eb = document.getElementById("event-bars");
+      const maxE = Math.max(...Object.values(d.events.breakdown), 1);
+      eb.innerHTML = Object.entries(d.events.breakdown)
+        .sort((a, b) => b[1] - a[1])
+        .map(([type, n]) => {
+          const colors = { view: "bg-udemy-purple", search: "bg-amber-500", click: "bg-green-500" };
+          return `<div class="flex items-center gap-3">
+            <div class="w-16 text-xs text-gray-500 text-right font-medium">${type}</div>
+            <div class="flex-1 bg-gray-100 rounded-full h-5 overflow-hidden">
+              <div class="${colors[type] || 'bg-gray-400'} h-full rounded-full transition-all" style="width:${Math.round(n/maxE*100)}%"></div>
+            </div>
+            <div class="w-12 text-xs text-udemy-text font-bold">${n}</div>
+          </div>`;
+        }).join("");
+
+      // Category bars
+      const cb = document.getElementById("cat-bars");
+      if (d.top_categories.length) {
+        const maxC = d.top_categories[0].events;
+        cb.innerHTML = d.top_categories.map(c =>
+          `<div class="flex items-center gap-3">
+            <div class="w-28 text-xs text-gray-500 text-right truncate font-medium">${c.category}</div>
+            <div class="flex-1 bg-gray-100 rounded-full h-5 overflow-hidden">
+              <div class="bg-udemy-purple h-full rounded-full" style="width:${Math.round(c.events/maxC*100)}%"></div>
+            </div>
+            <div class="w-12 text-xs text-udemy-text font-bold">${c.events}</div>
+          </div>`
+        ).join("");
+      } else {
+        cb.innerHTML = '<div class="text-sm text-gray-400">No activity yet.</div>';
+      }
+    } catch (_) {}
+  }
+
+  async function loadProfiles() {
+    try {
+      const r = await fetch("/api/admin/user-profiles");
+      if (!r.ok) return;
+      const profiles = await r.json();
+      const el = document.getElementById("profiles");
+      if (!profiles.length) {
+        el.innerHTML = '<div class="text-slate-400">No users yet. Register some accounts.</div>';
+        return;
+      }
+      el.innerHTML = profiles.map(p => {
+        const cats = p.hot_categories.map(c => `<span class="inline-block text-xs bg-purple-50 text-udemy-purple px-2 py-0.5 rounded-full font-medium">${c}</span>`).join(" ");
+        const searches = p.recent_searches.length
+          ? `<span class="text-gray-400">Searched:</span> ${p.recent_searches.slice(0,3).map(s => `"${s}"`).join(", ")}`
+          : "";
+        return `<div class="border border-udemy-border rounded-lg p-3 hover:bg-udemy-light transition">
+          <div class="flex items-center justify-between mb-1">
+            <span class="font-bold text-sm text-udemy-text">${p.email}</span>
+            <span class="text-xs font-medium ${p.has_recommendation ? 'text-green-600' : 'text-gray-400'}">${p.has_recommendation ? '✓ Has recs' : 'No recs yet'}</span>
+          </div>
+          <div class="flex items-center gap-2 mb-1">${cats || '<span class="text-xs text-gray-400">no category signal</span>'}</div>
+          <div class="text-xs text-gray-500">${p.event_count} events${searches ? ' · ' + searches : ''}</div>
+        </div>`;
+      }).join("");
+    } catch (_) {}
+  }
+
+  loadStats();
+  loadProfiles();
+  setInterval(loadStats, 8000);
+
+  // --- Signal stream (live feed) ---
+  let liveTimer = null;
+  async function pollStream() {
+    try {
+      const r = await fetch("/api/admin/recent-events");
+      if (!r.ok) return;
+      const events = await r.json();
+      const el = document.getElementById("stream-feed");
+      if (!events.length) { el.innerHTML = '<div class="text-sm text-gray-400 py-3">No events yet.</div>'; return; }
+      el.innerHTML = events.map(e => {
+        const p = e.payload || {};
+        const target = p.query ? `"${p.query}"` : (p.title || (p.category || "").replace(/-/g, " "));
+        const dot = { search: "bg-amber-500", view: "bg-udemy-purple", click: "bg-green-500" }[e.event_type] || "bg-gray-400";
+        const t = e.created_at ? new Date(e.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : "—";
+        return `<div class="flex gap-3 py-2.5 items-baseline">
+          <span class="text-xs font-mono text-gray-400 w-12 shrink-0">${t}</span>
+          <span class="w-2 h-2 rounded-full shrink-0 ${dot}"></span>
+          <div class="flex-1 text-sm text-udemy-text min-w-0 truncate"><span class="text-gray-500 capitalize">${e.event_type}</span> ${target}</div>
+          <span class="text-xs text-gray-400 shrink-0">${e.user}</span>
+        </div>`;
+      }).join("");
+    } catch (_) {}
+  }
+  function toggleLive() {
+    const btn = document.getElementById("live-btn");
+    const dot = document.getElementById("live-dot");
+    if (liveTimer) {
+      clearInterval(liveTimer); liveTimer = null;
+      btn.textContent = "▶ Go live";
+      dot.className = "w-2.5 h-2.5 rounded-full bg-gray-300";
+    } else {
+      pollStream();
+      liveTimer = setInterval(pollStream, 3000);
+      btn.textContent = "❚❚ Pause live feed";
+      dot.className = "w-2.5 h-2.5 rounded-full bg-green-500 animate-pulse";
+    }
+  }
+
+  // --- CRUD (unchanged) ---
+  async function createProduct() {
+    const payload = {
+      title: document.getElementById("f-title").value,
+      description: document.getElementById("f-desc").value,
+      category: document.getElementById("f-cat").value,
+      price: parseFloat(document.getElementById("f-price").value || "0"),
+      level: document.getElementById("f-level").value || "all",
+      tags: (document.getElementById("f-tags").value || "").split(",").map(s => s.trim()).filter(Boolean),
+    };
+    const r = await fetch("/api/products", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+    const msg = document.getElementById("admin-msg");
+    if (r.ok) { msg.textContent = "Created + embedded. Reloading..."; setTimeout(() => location.reload(), 700); }
+    else { msg.textContent = "Error: " + ((await r.json()).detail || r.status); }
+  }
+  async function del(id) {
+    if (!confirm("Delete this course from SQL + vector store?")) return;
+    const r = await fetch("/api/products/" + id, { method: "DELETE" });
+    if (r.ok || r.status === 204) { document.getElementById("row-" + id).remove(); loadStats(); }
+  }
+
+  // --- Mailbox ---
+  async function loadMailbox() {
+    const r = await fetch("/api/admin/mailbox");
+    if (!r.ok) return;
+    const msgs = await r.json();
+    const el = document.getElementById("mailbox-list");
+    if (!msgs.length) {
+      el.innerHTML = '<p class="text-gray-400 text-sm">No digest messages yet. Click "Run Digest Now" to trigger one.</p>';
+      return;
+    }
+    el.innerHTML = msgs.map(m => {
+      const channelBadge = m.channel?.includes("telegram")
+        ? '<span class="bg-blue-100 text-blue-700 text-xs font-bold px-2 py-0.5 rounded-full">✓ Sent via Telegram</span>'
+        : '<span class="bg-gray-100 text-gray-500 text-xs font-bold px-2 py-0.5 rounded-full">Mailbox only</span>';
+      const tgCard = m.telegram_card ? m.telegram_card
+        .replace(/\*(.*?)\*/g, '<strong>$1</strong>')
+        .replace(/_(.*?)_/g, '<em>$1</em>')
+        .replace(/\n/g, '<br>') : '';
+      return `
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <!-- Email view -->
+        <div class="bg-white border border-udemy-border rounded-lg p-5">
+          <div class="flex items-center gap-2 mb-3">
+            <span class="text-lg">✉️</span>
+            <span class="text-xs font-bold text-gray-500 uppercase">Email</span>
+            ${channelBadge}
+          </div>
+          <div class="flex items-start justify-between mb-2">
+            <div>
+              <span class="text-xs font-bold text-udemy-purple">To:</span>
+              <span class="text-sm font-bold text-udemy-text ml-1">${m.to}</span>
+            </div>
+            <span class="text-xs text-gray-400">${new Date(m.delivered_at).toLocaleString()}</span>
+          </div>
+          <div class="text-sm font-bold text-udemy-text mb-2">${m.subject}</div>
+          <div class="text-sm text-gray-600 whitespace-pre-line bg-gray-50 rounded p-3">${m.body}</div>
+        </div>
+        <!-- Telegram card preview -->
+        <div class="rounded-lg overflow-hidden" style="background: #e8ecf0;">
+          <div class="flex items-center gap-2 px-4 py-2.5" style="background: #0088cc;">
+            <span class="text-white text-lg">✈️</span>
+            <span class="text-white text-sm font-bold">Telegram Preview</span>
+          </div>
+          <div class="p-4">
+            <div class="max-w-[85%] bg-white rounded-lg rounded-tl-none p-3 shadow-sm text-sm leading-relaxed">
+              ${tgCard || '<span class="text-gray-400 italic">No product data for card</span>'}
+              <div class="text-right mt-1">
+                <span class="text-[10px] text-gray-400">${new Date(m.delivered_at).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})}</span>
+                <span class="text-blue-500 ml-1 text-xs">✓</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>`;
+    }).join("");
+  }
+  async function triggerDigest() {
+    const btn = event.target;
+    btn.disabled = true;
+    btn.textContent = "Running…";
+    const r = await fetch("/api/admin/trigger-digest", { method: "POST" });
+    if (r.ok) {
+      const d = await r.json();
+      btn.textContent = `✓ Sent ${d.delivered} digest(s)`;
+      loadMailbox();
+    } else {
+      btn.textContent = "Error — try again";
+    }
+    setTimeout(() => { btn.disabled = false; btn.textContent = "▶ Run Digest Now"; }, 3000);
+  }
+</script>
+{% endblock %}
