@@ -5,6 +5,8 @@ services:
     buildCommand: pip install -r requirements.txt
     startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
     envVars:
+      - key: APP_ENV
+        value: production
       - key: MESH_API_KEY
         sync: false
       - key: MESH_BASE_URL
@@ -17,6 +19,18 @@ services:
         value: openai/text-embedding-3-small
       - key: SECRET_KEY
         generateValue: true
+      - key: ADMIN_EMAIL
+        value: admin@smartreco.dev
+      - key: ADMIN_PASSWORD
+        sync: false
+      - key: SEED_DEMO_USERS
+        value: "false"
+      - key: TELEGRAM_BOT_TOKEN
+        sync: false
+      - key: TELEGRAM_CHAT_ID
+        sync: false
+      - key: TELEGRAM_RECIPIENT_EMAIL
+        sync: false
       - key: DATABASE_URL
         value: sqlite+aiosqlite:///./smartreco.db
       - key: CHROMA_DIR
